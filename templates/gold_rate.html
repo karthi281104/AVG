@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVG - Real-time Gold Rates India</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="static/style.css" rel="stylesheet">
+    <!-- Gold Rates Page CSS -->
+    <link href="static/gold_rate.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- ApexCharts for interactive charts -->
+    <link href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.3/dist/apexcharts.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Semi-transparent fixed header with animated elements -->
+    <header class="fixed-top">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <!-- Animated company logo and name on left side -->
+                <a class="navbar-brand" href="/">
+                    <span class="logo-text">A<span class="highlight">V</span>G</span>
+                    <span class="tagline">Luxury Redefined</span>
+                </a>
+
+                <!-- Navigation toggle button for mobile -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Navigation links with hover effects -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="gold">Gold Rates</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Inventory</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Finance</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Reports</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn-nav" href="#">Login</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main content -->
+    <main>
+        <!-- Gold Rates Hero Section -->
+        <section class="gold-hero-section">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6" data-aos="fade-right" data-aos-duration="1000">
+                        <h1>Real-time <span class="highlight-text">Gold Rates</span></h1>
+                        <h2>India's Live Precious Metal Prices</h2>
+                        <p>Live updated gold prices and market trends from reliable sources. Last updated: <span id="last-updated">Updating...</span></p>
+                    </div>
+                    <div class="col-lg-6" data-aos="fade-left" data-aos-duration="1000">
+                        <div class="gold-price-card">
+                            <div class="gold-price-header">
+                                <h3>Gold Price <span class="badge bg-premium">LIVE</span></h3>
+                                <div class="gold-price-update">
+                                    <i class="fas fa-sync fa-spin"></i>
+                                    <span>Auto-updates</span>
+                                </div>
+                            </div>
+                            <div class="gold-price-body">
+                                <div class="current-price">
+                                    <span id="gold-price-value">Loading...</span>
+                                    <span class="price-unit">per 10g (24K)</span>
+                                </div>
+                                <div class="price-change" id="price-change">
+                                    <i class="fas fa-caret-up"></i>
+                                    <span id="change-value">--</span>
+                                    <span id="change-percentage">(--)</span>
+                                </div>
+                            </div>
+                            <div class="gold-price-footer">
+                                <span>Data sourced from market APIs</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Price History Chart Section -->
+        <section class="price-chart-section">
+            <div class="container">
+                <h2 class="section-heading text-center mb-5" data-aos="fade-up">Gold Price <span class="highlight-text">History</span></h2>
+                <div class="chart-container" data-aos="zoom-in">
+                    <div class="chart-toolbar">
+                        <div class="chart-filters">
+                            <button class="btn btn-sm btn-chart active" data-period="1d">1D</button>
+                            <button class="btn btn-sm btn-chart" data-period="1w">1W</button>
+                            <button class="btn btn-sm btn-chart" data-period="1m">1M</button>
+                            <button class="btn btn-sm btn-chart" data-period="3m">3M</button>
+                            <button class="btn btn-sm btn-chart" data-period="1y">1Y</button>
+                        </div>
+                    </div>
+                    <div id="gold-price-chart"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gold Types and Rates Table Section -->
+        <section class="gold-types-section">
+            <div class="container">
+                <h2 class="section-heading text-center mb-5" data-aos="fade-up">Gold Rates by <span class="highlight-text">Purity</span></h2>
+                <div class="table-responsive" data-aos="fade-up">
+                    <table class="table gold-rates-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Purity</th>
+                                <th>Price (per gram)</th>
+                                <th>Price (per 10g)</th>
+                                <th>Daily Change</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gold-rates-tbody">
+                            <tr class="placeholder-row">
+                                <td colspan="5" class="text-center">Loading gold rates...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gold Rates by City Section -->
+        <section class="city-rates-section">
+            <div class="container">
+                <h2 class="section-heading text-center mb-5" data-aos="fade-up">Gold Rates by <span class="highlight-text">City</span></h2>
+                <div class="row" id="city-rates-container">
+                    <!-- City cards will be dynamically inserted here -->
+                    <div class="col-md-4 mb-4" data-aos="fade-up">
+                        <div class="city-rate-card placeholder-card">
+                            <div class="city-card-header">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <h3>Loading...</h3>
+                            </div>
+                            <div class="city-card-body">
+                                <div class="city-price">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                        <div class="city-rate-card placeholder-card">
+                            <div class="city-card-header">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <h3>Loading...</h3>
+                            </div>
+                            <div class="city-card-body">
+                                <div class="city-price">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="400">
+                        <div class="city-rate-card placeholder-card">
+                            <div class="city-card-header">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <h3>Loading...</h3>
+                            </div>
+                            <div class="city-card-body">
+                                <div class="city-price">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Market Insights Section -->
+        <section class="market-insights-section">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6" data-aos="fade-right">
+                        <h2>Gold Market <span class="highlight-text">Insights</span></h2>
+                        <p class="lead">Key factors affecting today's gold prices in India.</p>
+                        <div class="insights-list">
+                            <div class="insight-item" data-aos="fade-up" data-aos-delay="100">
+                                <div class="insight-icon">
+                                    <i class="fas fa-rupee-sign"></i>
+                                </div>
+                                <div class="insight-content">
+                                    <h4>INR Exchange Rate</h4>
+                                    <p>Current INR/USD: <span id="exchange-rate">Loading...</span></p>
+                                </div>
+                            </div>
+                            <div class="insight-item" data-aos="fade-up" data-aos-delay="200">
+                                <div class="insight-icon">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                                <div class="insight-content">
+                                    <h4>Import Duty</h4>
+                                    <p>Current gold import duty: <span id="import-duty">Loading...</span></p>
+                                </div>
+                            </div>
+                            <div class="insight-item" data-aos="fade-up" data-aos-delay="300">
+                                <div class="insight-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="insight-content">
+                                    <h4>Market Trend</h4>
+                                    <p>Current trend: <span id="market-trend">Analyzing...</span></p>
+                                </div>
+                            </div>
+                            <div class="insight-item" data-aos="fade-up" data-aos-delay="400">
+                                <div class="insight-icon">
+                                    <i class="fas fa-globe"></i>
+                                </div>
+                                <div class="insight-content">
+                                    <h4>Global Influence</h4>
+                                    <p>International gold price: <span id="global-price">Loading...</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6" data-aos="fade-left">
+                        <div class="comparison-chart-container">
+                            <h3 class="text-center mb-4">Gold vs Other Investments</h3>
+                            <div id="investment-comparison-chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calculator Section -->
+        <section class="calculator-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 mx-auto">
+                        <div class="calculator-card" data-aos="zoom-in">
+                            <h2 class="text-center mb-4">Gold Value <span class="highlight-text">Calculator</span></h2>
+                            <form id="gold-calculator-form">
+                                <div class="mb-3">
+                                    <label for="goldWeight" class="form-label">Gold Weight (grams)</label>
+                                    <input type="number" class="form-control" id="goldWeight" min="0" step="0.01" placeholder="Enter weight">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="goldPurity" class="form-label">Gold Purity</label>
+                                    <select class="form-select" id="goldPurity">
+                                        <option value="0.999">24K (99.9% pure)</option>
+                                        <option value="0.916">22K (91.6% pure)</option>
+                                        <option value="0.75">18K (75% pure)</option>
+                                        <option value="0.585">14K (58.5% pure)</option>
+                                    </select>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="button" id="calculateBtn" class="btn btn-primary btn-lg">Calculate Value</button>
+                                </div>
+                                <div class="result-container mt-4 text-center" id="calculatorResult">
+                                    <h3>Estimated Value</h3>
+                                    <div class="calculated-value">₹ <span id="calculatedValue">0.00</span></div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notification Bell for Price Alerts -->
+        <div class="price-alert-bell">
+            <button id="alertToggleBtn" class="alert-bell-btn">
+                <i class="fas fa-bell"></i>
+                <span class="alert-badge">!</span>
+            </button>
+            <div class="alert-popup" id="alertPopup">
+                <div class="alert-popup-header">
+                    <h4>Price Alerts</h4>
+                    <button class="close-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="alert-popup-body">
+                    <p>Set alert when gold price reaches:</p>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text">₹</span>
+                        <input type="number" class="form-control" id="alertPrice" placeholder="Enter price">
+                        <button class="btn btn-primary" id="setAlertBtn">Set Alert</button>
+                    </div>
+                    <div class="alert-list" id="alertList">
+                        <p class="text-muted text-center">No alerts set</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer with modern design -->
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="footer-info">
+                            <h3>AVG</h3>
+                            <p class="pb-3">Luxury jewelry and finance management reimagined for the modern business owner.</p>
+                            <div class="social-links mt-3">
+                                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                                <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 footer-links">
+                        <h4>Navigation</h4>
+                        <ul>
+                            <li><i class="fas fa-chevron-right"></i> <a href="index.html">Home</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="gold-rates.html">Gold Rates</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">Features</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">About</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">Contact</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 footer-links">
+                        <h4>Gold Resources</h4>
+                        <ul>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">Market News</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">Price History</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">Investment Tips</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">Gold Policies</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">FAQ</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <h4>Get Gold Price Updates</h4>
+                        <p>Subscribe to receive daily gold price updates directly to your email</p>
+                        <div class="footer-newsletter">
+                            <form action="#">
+                                <input type="email" name="email" placeholder="Your email">
+                                <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                            </form>
+                        </div>
+                        <div class="mt-4">
+                            <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                            <p><i class="fas fa-envelope"></i> gold@avgmanagement.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom text-center">
+            <div class="container">
+                <div class="copyright">
+                    &copy; <span id="current-year">2025</span> <strong><span>AVG Management System</span></strong>. All Rights Reserved
+                </div>
+                <div class="credits">
+                    <small>Gold rate data is provided for informational purposes only. Rates may vary from actual jeweler prices.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to top button with animation -->
+    <a href="#" class="back-to-top"><i class="fas fa-arrow-up"></i></a>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <!-- AOS Animation Library -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- ApexCharts for interactive charts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.35.3/dist/apexcharts.min.js"></script>
+    <!-- Custom JS -->
+    <script src="static/gold_rate.js"></script>
+</body>
+</html>

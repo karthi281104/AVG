@@ -1,0 +1,665 @@
+/* Gold Rates Page Specific Styles */
+
+/* Gold Hero Section */
+.gold-hero-section {
+    padding: 120px 0 80px;
+    background: linear-gradient(135deg, #f6f9ff 0%, #fffde7 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.gold-hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMtNi4wNzUgMC0xMSA0LjkyNS0xMSAxMXM0LjkyNSAxMSAxMSAxMSAxMS00LjkyNSAxMS0xMS00LjkyNS0xMS0xMS0xMXptMCAyYTkgOSAwIDExMCAxOCA5IDkgMCAwMTAtMTh6IiBmaWxsPSJyZ2JhKDI1NSwgMjE1LCAwLCAwLjIpIi8+PHBhdGggZD0iTTMwIDBDMTguNDIgMCA3LjU3OCAxMC41NiA3LjU3OCAyNC4xNFY0OEgwdjEyaDYwVjQ4aC03LjU3OFYyNC4xNEw2MCAwSDMwek0yNCA0OFYyNC4xNEMyNCAyMi45ODggMjQuODM4IDIyIDI2IDIyaDhDMzUuMTYyIDIyIDM2IDIyLjk4OCAzNiAyNC4xNFY0OEgyNHoiIGZpbGw9InJnYmEoMjU1LCAyMTUsIDAsIDAuMSkiLz48L2c+PC9zdmc+');
+    opacity: 0.05;
+}
+
+.gold-hero-section h1 {
+    color: #333;
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.gold-hero-section h2 {
+    color: var(--primary-light);
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+}
+
+.gold-hero-section p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+/* Gold Price Card */
+.gold-price-card {
+    background: linear-gradient(135deg, #ffffff 0%, #fffaf0 100%);
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.gold-price-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+    z-index: -1;
+}
+
+.gold-price-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.gold-price-header h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+}
+
+.badge.bg-premium {
+    background: linear-gradient(45deg, #d4af37, #f1c40f);
+    font-size: 0.7rem;
+    padding: 0.35em 0.65em;
+    margin-left: 10px;
+    animation: pulse 2s infinite;
+}
+
+.gold-price-update {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.gold-price-update i {
+    color: var(--primary-color);
+    margin-right: 5px;
+}
+
+.gold-price-body {
+    padding: 30px 20px;
+    text-align: center;
+}
+
+.current-price {
+    margin-bottom: 15px;
+}
+
+#gold-price-value {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #d4af37;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: 'Playfair Display', serif;
+    display: block;
+}
+
+.price-unit {
+    display: block;
+    font-size: 1rem;
+    color: #777;
+    margin-top: 5px;
+}
+
+.price-change {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.price-change.up {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.price-change.down {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.price-change i {
+    margin-right: 5px;
+}
+
+.gold-price-footer {
+    background: rgba(0, 0, 0, 0.02);
+    text-align: center;
+    padding: 10px;
+    font-size: 0.9rem;
+    color: #777;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Price Chart Section */
+.price-chart-section {
+    padding: 80px 0;
+    background-color: #fff;
+}
+
+.chart-container {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    border: 1px solid #f0f0f0;
+    position: relative;
+}
+
+.chart-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.chart-filters {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-chart {
+    font-size: 0.8rem;
+    padding: 5px 15px;
+    border-radius: 20px;
+    background: transparent;
+    border: 1px solid #e0e0e0;
+    color: #777;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-chart:hover, .btn-chart.active {
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    border-color: var(--primary-color);
+    color: white;
+}
+
+#gold-price-chart {
+    height: 400px;
+}
+
+/* Gold Types and Rates Table */
+.gold-types-section {
+    padding: 80px 0;
+    background-color: #f9f9f9;
+}
+
+.gold-rates-table {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: white;
+}
+
+.gold-rates-table thead {
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    color: white;
+}
+
+.gold-rates-table th {
+    padding: 15px 20px;
+    font-weight: 600;
+    border: none;
+}
+
+.gold-rates-table td {
+    padding: 15px 20px;
+    border-color: #f0f0f0;
+    vertical-align: middle;
+}
+
+.gold-rates-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.gold-rates-table tbody tr:hover {
+    background-color: rgba(138, 43, 226, 0.03);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.trend-up, .trend-down {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 600;
+}
+
+.trend-up {
+    color: #28a745;
+}
+
+.trend-down {
+    color: #dc3545;
+}
+
+.trend-up i, .trend-down i {
+    margin-right: 5px;
+    font-size: 0.9rem;
+}
+
+.placeholder-row td {
+    padding: 30px;
+    text-align: center;
+    color: #777;
+}
+
+/* City Rates Section */
+.city-rates-section {
+    padding: 80px 0;
+    background-color: #fff;
+}
+
+.city-rate-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    height: 100%;
+    border: 1px solid #f0f0f0;
+}
+
+.city-rate-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.city-card-header {
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.city-card-header i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+.city-card-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+}
+
+.city-card-body {
+    padding: 25px 20px;
+    text-align: center;
+}
+
+.city-price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+    font-family: 'Playfair Display', serif;
+}
+
+.city-price-unit {
+    display: block;
+    font-size: 0.9rem;
+    color: #777;
+    margin-top: 5px;
+}
+
+.placeholder-card .city-card-header {
+    background: #f0f0f0;
+}
+
+.placeholder-card .city-card-header h3 {
+    color: #999;
+    background: #e0e0e0;
+    border-radius: 5px;
+    width: 100px;
+    height: 20px;
+    margin: 0;
+    animation: pulse 1.5s infinite;
+}
+
+.placeholder-card .city-price {
+    background: #f0f0f0;
+    border-radius: 5px;
+    width: 150px;
+    height: 40px;
+    margin: 0 auto;
+    animation: pulse 1.5s infinite;
+}
+
+/* Market Insights Section */
+.market-insights-section {
+    padding: 100px 0;
+    background: linear-gradient(135deg, #f9f9f9 0%, #f2f2f2 100%);
+}
+
+.market-insights-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.market-insights-section .lead {
+    font-size: 1.2rem;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+.insights-list {
+    margin-top: 40px;
+}
+
+.insight-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    background: white;
+    border-radius: 10px;
+    padding: 15px 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.insight-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+.insight-icon {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    background: linear-gradient(45deg, rgba(138, 43, 226, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+}
+
+.insight-icon i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.insight-content h4 {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+.insight-content p {
+    margin: 0;
+    color: #666;
+}
+
+.comparison-chart-container {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    height: 100%;
+}
+
+#investment-comparison-chart {
+    height: 350px;
+}
+
+/* Calculator Section */
+.calculator-section {
+    padding: 80px 0;
+    background: linear-gradient(135deg, #f6f9ff 0%, #fffde7 100%);
+    position: relative;
+}
+
+.calculator-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMtNi4wNzUgMC0xMSA0LjkyNS0xMSAxMXM0LjkyNSAxMSAxMSAxMSAxMS00LjkyNSAxMS0xMS00LjkyNS0xMS0xMS0xMXptMCAyYTkgOSAwIDExMCAxOCA5IDkgMCAwMTAtMTh6IiBmaWxsPSJyZ2JhKDI1NSwgMjE1LCAwLCAwLjIpIi8+PHBhdGggZD0iTTMwIDBDMTguNDIgMCA3LjU3OCAxMC41NiA3LjU3OCAyNC4xNFY0OEgwdjEyaDYwVjQ4aC03LjU3OFYyNC4xNEw2MCAwSDMwek0yNCA0OFYyNC4xNEMyNCAyMi45ODggMjQuODM4IDIyIDI2IDIyaDhDMzUuMTYyIDIyIDM2IDIyLjk4OCAzNiAyNC4xNFY0OEgyNHoiIGZpbGw9InJnYmEoMjU1LCAyMTUsIDAsIDAuMSkiLz48L2c+PC9zdmc+');
+    opacity: 0.05;
+}
+
+.calculator-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1;
+}
+
+.calculator-card h2 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+.result-container {
+    background: linear-gradient(45deg, rgba(138, 43, 226, 0.05) 0%, rgba(255, 215, 0, 0.05) 100%);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 30px;
+}
+
+.result-container h3 {
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    color: #555;
+}
+
+.calculated-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    font-family: 'Playfair Display', serif;
+}
+
+/* Price Alert Bell */
+.price-alert-bell {
+    position: fixed;
+    bottom: 90px;
+    right: 30px;
+    z-index: 998;
+}
+
+.alert-bell-btn {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    box-shadow: 0 5px 15px rgba(138, 43, 226, 0.3);
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.alert-bell-btn:hover {
+    transform: scale(1.1);
+}
+
+.alert-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 20px;
+    height: 20px;
+    background-color: #dc3545;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    animation: pulse 1.5s infinite;
+}
+
+.alert-popup {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    width: 300px;
+    background: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    display: none;
+    z-index: 999;
+    transform: scale(0.95);
+    opacity: 0;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.alert-popup.show {
+    display: block;
+    transform: scale(1);
+    opacity: 1;
+}
+
+.alert-popup-header {
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert-popup-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.alert-popup-body {
+    padding: 20px;
+}
+
+.alert-list {
+    margin-top: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.alert-price {
+    font-weight: 600;
+}
+
+.alert-delete {
+    color: #dc3545;
+    cursor: pointer;
+}
+
+/* Additional animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    .gold-hero-section {
+        padding: 100px 0 60px;
+    }
+
+    .gold-hero-section h1 {
+        font-size: 2.8rem;
+    }
+
+    .market-insights-section {
+        padding: 70px 0;
+    }
+
+    .comparison-chart-container {
+        margin-top: 50px;
+    }
+
+    #investment-comparison-chart {
+        height: 300px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .gold-hero-section h1 {
+        font-size: 2.2rem;
+    }
+
+    .gold-hero-section h2 {
+        font-size: 1.5rem;
+    }
+
+    .gold-price-card {
+        margin-top: 40px;
+    }
+
+    #gold-price-value {
+        font-size: 2.5rem;
+    }
+
+    .price-chart-section,
+    .gold-types-section,
+    .city-rates-section,
+    .calculator-section {
+        padding: 60px 0;
+    }
+
+    .insight-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .insight-icon {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+}
