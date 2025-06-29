@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMI Calculator - AVG Loans</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='calculators.css') }}" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Header with navigation -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <span class="fw-bold">AVG</span> <span class="text-muted">Loans</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/#services">Services</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/calculators">Calculators</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/#about">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/#contact">Contact</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn-nav" href="/login">Login</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main content -->
+    <main class="calculator-page">
+        <section class="calculator-header">
+            <div class="container">
+                <h1>EMI Calculator</h1>
+                <p>Calculate your monthly loan installments based on loan amount, interest rate, and tenure.</p>
+            </div>
+        </section>
+
+        <section class="calculator-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-5">
+                        <div class="calculator-card">
+                            <div class="card-header">
+                                <h3>Loan Details</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="emiForm">
+                                    <div class="mb-4">
+                                        <label for="loanAmount" class="form-label">Loan Amount (₹)</label>
+                                        <input type="number" class="form-control" id="loanAmount" min="1000" value="100000">
+                                        <div class="range-slider mt-2">
+                                            <input type="range" class="form-range" id="loanAmountRange" min="1000" max="10000000" step="1000" value="100000">
+                                            <div class="range-labels">
+                                                <span>₹1K</span>
+                                                <span>₹1Cr</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="interestRate" class="form-label">Interest Rate (% per annum)</label>
+                                        <input type="number" class="form-control" id="interestRate" min="1" max="30" step="0.1" value="10">
+                                        <div class="range-slider mt-2">
+                                            <input type="range" class="form-range" id="interestRateRange" min="1" max="30" step="0.1" value="10">
+                                            <div class="range-labels">
+                                                <span>1%</span>
+                                                <span>30%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="loanTenure" class="form-label">Loan Tenure (months)</label>
+                                        <input type="number" class="form-control" id="loanTenure" min="1" max="360" value="60">
+                                        <div class="range-slider mt-2">
+                                            <input type="range" class="form-range" id="loanTenureRange" min="1" max="360" step="1" value="60">
+                                            <div class="range-labels">
+                                                <span>1 month</span>
+                                                <span>30 years</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" id="calculateBtn" class="btn btn-primary w-100">Calculate EMI</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <div class="results-card">
+                            <div class="card-header">
+                                <h3>Loan Summary</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-4">
+                                    <div class="col-md-4">
+                                        <div class="result-box">
+                                            <h4>Monthly EMI</h4>
+                                            <div class="result-value" id="monthlyEmi">₹ 0</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="result-box">
+                                            <h4>Total Interest</h4>
+                                            <div class="result-value" id="totalInterest">₹ 0</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="result-box">
+                                            <h4>Total Amount</h4>
+                                            <div class="result-value" id="totalAmount">₹ 0</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="chart-container">
+                                    <canvas id="emiChart"></canvas>
+                                </div>
+
+                                <div class="mt-4">
+                                    <h4>Amortization Schedule</h4>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped" id="amortizationTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Month</th>
+                                                    <th>EMI</th>
+                                                    <th>Principal</th>
+                                                    <th>Interest</th>
+                                                    <th>Balance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Will be filled by JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-bottom text-center">
+            <div class="container">
+                <div class="copyright">
+                    &copy; <span id="current-year">2025</span> <strong><span>AVG Loan Management System</span></strong>. All Rights Reserved
+                </div>
+                <div class="credits">
+                    Secure financial solutions for your needs
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update year in footer
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+
+            // Set up the chart (initial empty state)
+            const ctx = document.getElementById('emiChart').getContext('2d');
+            let emiChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Principal', 'Interest'],
+                    datasets: [{
+                        data: [100, 0],
+                        backgroundColor: ['#8a2be2', '#ffb86c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Sync range sliders with input fields
+            document.getElementById('loanAmountRange').addEventListener('input', function() {
+                document.getElementById('loanAmount').value = this.value;
+            });
+
+            document.getElementById('loanAmount').addEventListener('input', function() {
+                document.getElementById('loanAmountRange').value = this.value;
+            });
+
+            document.getElementById('interestRateRange').addEventListener('input', function() {
+                document.getElementById('interestRate').value = this.value;
+            });
+
+            document.getElementById('interestRate').addEventListener('input', function() {
+                document.getElementById('interestRateRange').value = this.value;
+            });
+
+            document.getElementById('loanTenureRange').addEventListener('input', function() {
+                document.getElementById('loanTenure').value = this.value;
+            });
+
+            document.getElementById('loanTenure').addEventListener('input', function() {
+                document.getElementById('loanTenureRange').value = this.value;
+            });
+
+            // Calculate EMI function
+            document.getElementById('calculateBtn').addEventListener('click', function() {
+                calculateEMI();
+            });
+
+            function calculateEMI() {
+                const principal = parseFloat(document.getElementById('loanAmount').value);
+                const interestRate = parseFloat(document.getElementById('interestRate').value);
+                const tenureMonths = parseInt(document.getElementById('loanTenure').value);
+
+                // Call the API
+                fetch('/api/calculate/emi', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        principal: principal,
+                        interest_rate: interestRate,
+                        tenure_months: tenureMonths
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Update results
+                    document.getElementById('monthlyEmi').textContent = '₹ ' + formatNumber(data.monthly_emi);
+                    document.getElementById('totalInterest').textContent = '₹ ' + formatNumber(data.total_interest);
+                    document.getElementById('totalAmount').textContent = '₹ ' + formatNumber(data.total_payment);
+
+                    // Update chart
+                    emiChart.data.datasets[0].data = [principal, data.total_interest];
+                    emiChart.update();
+
+                    // Generate amortization schedule
+                    generateAmortizationTable(data.schedule);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Fallback calculation if API fails
+                    fallbackCalculation(principal, interestRate, tenureMonths);
+                });
+            }
+
+            function fallbackCalculation(principal, interestRate, tenureMonths) {
+                // Calculate monthly interest rate
+                const monthlyInterestRate = interestRate / 100 / 12;
+
+                // Calculate EMI using formula: P × r × (1 + r)^n / ((1 + r)^n - 1)
+                const emi = principal * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, tenureMonths) /
+                            (Math.pow(1 + monthlyInterestRate, tenureMonths) - 1);
+
+                // Calculate total amount and interest
+                const totalAmount = emi * tenureMonths;
+                const totalInterest = totalAmount - principal;
+
+                // Update results
+                document.getElementById('monthlyEmi').textContent = '₹ ' + formatNumber(emi.toFixed(2));
+                document.getElementById('totalInterest').textContent = '₹ ' + formatNumber(totalInterest.toFixed(2));
+                document.getElementById('totalAmount').textContent = '₹ ' + formatNumber(totalAmount.toFixed(2));
+
+                // Update chart
+                emiChart.data.datasets[0].data = [principal, totalInterest];
+                emiChart.update();
+
+                // Generate amortization schedule manually
+                const schedule = [];
+                let remaining = principal;
+
+                for (let month = 1; month <= tenureMonths; month++) {
+                    const interestPayment = remaining * monthlyInterestRate;
+                    const principalPayment = emi - interestPayment;
+                    remaining -= principalPayment;
+
+                    if (remaining < 0) remaining = 0;
+
+                    schedule.push({
+                        month: month,
+                        emi: emi,
+                        principal_payment: principalPayment,
+                        interest_payment: interestPayment,
+                        remaining_principal: remaining
+                    });
+                }
+
+                generateAmortizationTable(schedule);
+            }
+
+            function generateAmortizationTable(schedule) {
+                const tableBody = document.getElementById('amortizationTable').getElementsByTagName('tbody')[0];
+                tableBody.innerHTML = '';
+
+                // Generate rows for first 12 months and then every 12 months
+                for (let i = 0; i < schedule.length; i++) {
+                    const month = schedule[i].month;
+
+                    // Only show months 1-12, 24, 36, 48, etc. and the last month
+                    if (month <= 12 || month === schedule.length || month % 12 === 0) {
+                        const row = tableBody.insertRow();
+                        row.insertCell(0).textContent = month;
+                        row.insertCell(1).textContent = '₹ ' + formatNumber(schedule[i].emi.toFixed(2));
+                        row.insertCell(2).textContent = '₹ ' + formatNumber(schedule[i].principal_payment.toFixed(2));
+                        row.insertCell(3).textContent = '₹ ' + formatNumber(schedule[i].interest_payment.toFixed(2));
+                        row.insertCell(4).textContent = '₹ ' + formatNumber(schedule[i].remaining_principal.toFixed(2));
+                    }
+                }
+            }
+
+            function formatNumber(num) {
+                return new Intl.NumberFormat('en-IN').format(num);
+            }
+
+            // Calculate EMI on page load with default values
+            calculateEMI();
+        });
+    </script>
+</body>
+</html>

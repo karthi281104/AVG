@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AGV - Luxury Jewelry & Finance Management</title>
+    <title>AVG - Loan Services</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
-    <link href="static/style.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- AOS Animation Library -->
@@ -16,38 +16,32 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Semi-transparent fixed header with animated elements -->
-    <header class="fixed-top">
-        <nav class="navbar navbar-expand-lg">
+    <!-- Header with navigation -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top">
             <div class="container">
-                <!-- Animated company logo and name on left side -->
                 <a class="navbar-brand" href="/">
-                    <span class="logo-text">A<span class="highlight">V</span>G</span>
-                    <span class="tagline">Luxury Redefined</span>
+                    <span class="fw-bold">AVG</span> <span class="text-muted">Loans</span>
                 </a>
-
-                <!-- Navigation toggle button for mobile -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-
-                <!-- Navigation links with hover effects -->
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
                             <a class="nav-link active" href="/">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" aria-current="page" href="gold">Gold Rates</a>
+                            <a class="nav-link" href="#services">Services</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Inventory</a>
+                            <a class="nav-link" href="#calculators">Calculators</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Finance</a>
+                            <a class="nav-link" href="#about">About</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Reports</a>
+                            <a class="nav-link" href="#contact">Contact</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link btn-nav" href="/login">Login</a>
@@ -66,77 +60,138 @@
             <div class="container position-relative">
                 <div class="row align-items-center">
                     <div class="col-md-6" data-aos="fade-right" data-aos-duration="1000">
-                        <h1 class="animated-heading">Welcome to <span class="highlight-text">AGV</span></h1>
-                        <h2>Jewelry & Finance <span class="typing-text">Management</span></h2>
-                        <p>Your premium solution for managing exquisite jewelry inventory and sophisticated financial operations in one seamless platform.</p>
+                        <h1 class="animated-heading">Welcome to <span class="highlight-text">AVG</span></h1>
+                        <h2>Secure Loan <span class="typing-text">Solutions</span></h2>
+                        <p>Providing trusted financial services backed by gold and land assets, tailored to meet your specific needs with transparency and integrity.</p>
                         <div class="mt-4 btn-wrapper">
-                            <a href="#" class="btn btn-primary me-2 btn-glow">Get Started</a>
-                            <a href="#" class="btn btn-outline-secondary btn-hover-effect">Explore Features</a>
+                            <a href="#services" class="btn btn-primary me-2 btn-glow">Our Services</a>
+                            <a href="#calculators" class="btn btn-outline-secondary btn-hover-effect">Try Our Calculators</a>
                         </div>
                     </div>
                     <div class="col-md-6" data-aos="fade-up" data-aos-duration="1200" data-aos-delay="300">
                         <div class="hero-image-container">
-                            <img src="https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80" class="img-fluid hero-image" alt="AGV Jewelry Management">
-                            <div class="floating-badge">Premium</div>
-                            <div class="floating-element element-1"><i class="fas fa-gem"></i></div>
-                            <div class="floating-element element-2"><i class="fas fa-chart-line"></i></div>
+                            <img src="https://images.unsplash.com/photo-1601597111158-2fceff292cdc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80" class="img-fluid hero-image" alt="AVG Loans">
+                            <div class="floating-badge">Trusted</div>
+                            <div class="floating-element element-1"><i class="fas fa-landmark"></i></div>
+                            <div class="floating-element element-2"><i class="fas fa-coins"></i></div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="wave-divider">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-                    <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,181.3C384,203,480,213,576,197.3C672,181,768,139,864,133.3C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                    <path fill="#ffffff" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,133.3C672,139,768,181,864,181.3C960,181,1056,139,1152,122.7C1248,107,1344,117,1392,122.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
                 </svg>
             </div>
         </section>
 
-        <!-- Features section with animated cards -->
-        <section class="features-section">
+        <!-- Services section with modern cards -->
+        <section class="features-section" id="services">
             <div class="container">
-                <h2 class="section-heading text-center mb-5" data-aos="fade-up">Our <span class="highlight-text">Premium</span> Features</h2>
+                <h2 class="section-heading text-center mb-5" data-aos="fade-up">Our <span class="highlight-text">Services</span></h2>
                 <div class="row g-4">
-                    <div class="col-md-4" data-aos="zoom-in" data-aos-duration="800">
+                    <div class="col-md-6" data-aos="zoom-in" data-aos-duration="800">
                         <div class="feature-card">
                             <div class="icon-box">
-                                <i class="fas fa-gem"></i>
+                                <i class="fas fa-file-signature"></i>
                             </div>
-                            <h3>Jewelry Inventory</h3>
-                            <p>Track your exquisite collection with precision using our advanced categorization and real-time stock monitoring.</p>
+                            <h3>Land Document Loans</h3>
+                            <p>Secure loans against your land documents with competitive interest rates and flexible repayment terms.</p>
                             <div class="card-hover-content">
-                                <a href="#" class="btn-learn-more">Explore <i class="fas fa-arrow-right"></i></a>
+                                <a href="#contact" class="btn-learn-more">Inquire <i class="fas fa-arrow-right"></i></a>
                             </div>
                             <div class="card-decoration decoration-1"></div>
                             <div class="card-decoration decoration-2"></div>
                         </div>
                     </div>
-                    <div class="col-md-4" data-aos="zoom-in" data-aos-duration="800" data-aos-delay="200">
+                    <div class="col-md-6" data-aos="zoom-in" data-aos-duration="800" data-aos-delay="200">
                         <div class="feature-card featured">
                             <div class="featured-badge">Popular</div>
                             <div class="icon-box">
-                                <i class="fas fa-chart-line"></i>
+                                <i class="fas fa-coins"></i>
                             </div>
-                            <h3>Financial Analytics</h3>
-                            <p>Monitor transactions, loans, investments, and generate detailed financial projections instantly.</p>
+                            <h3>Gold Loans</h3>
+                            <p>Get immediate loans against your gold assets with best-in-market valuation and highly secure storage.</p>
                             <div class="card-hover-content">
-                                <a href="#" class="btn-learn-more">Explore <i class="fas fa-arrow-right"></i></a>
+                                <a href="#contact" class="btn-learn-more">Inquire <i class="fas fa-arrow-right"></i></a>
                             </div>
                             <div class="card-decoration decoration-1"></div>
                             <div class="card-decoration decoration-2"></div>
                         </div>
                     </div>
-                    <div class="col-md-4" data-aos="zoom-in" data-aos-duration="800" data-aos-delay="400">
-                        <div class="feature-card">
-                            <div class="icon-box">
-                                <i class="fas fa-file-invoice"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calculators section -->
+        <section class="calculators-section bg-light py-5" id="calculators">
+            <div class="container">
+                <h2 class="section-heading text-center mb-5" data-aos="fade-up">Loan <span class="highlight-text">Calculators</span></h2>
+                <div class="row g-4">
+                    <div class="col-md-4" data-aos="fade-up" data-aos-duration="800">
+                        <div class="calculator-card">
+                            <div class="card-icon">
+                                <i class="fas fa-calculator"></i>
                             </div>
-                            <h3>Smart Reports</h3>
-                            <p>Access AI-powered insights and visualized data to make strategic decisions and optimize operations.</p>
-                            <div class="card-hover-content">
-                                <a href="#" class="btn-learn-more">Explore <i class="fas fa-arrow-right"></i></a>
+                            <h3>EMI Calculator</h3>
+                            <p>Calculate your monthly loan payments based on principal amount, interest rate, and loan tenure.</p>
+                            <a href="/calculators/emi" class="btn btn-outline-primary mt-3">Use Calculator</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+                        <div class="calculator-card">
+                            <div class="card-icon">
+                                <i class="fas fa-coins"></i>
                             </div>
-                            <div class="card-decoration decoration-1"></div>
-                            <div class="card-decoration decoration-2"></div>
+                            <h3>Gold Loan Calculator</h3>
+                            <p>Estimate the loan amount you can get against your gold based on weight, purity, and current gold rates.</p>
+                            <a href="/calculators/gold" class="btn btn-outline-primary mt-3">Use Calculator</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4" data-aos="fade-up" data-aos-duration="800" data-aos-delay="400">
+                        <div class="calculator-card">
+                            <div class="card-icon">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            <h3>Gold Conversion</h3>
+                            <p>Convert between gold carat and percentage purity to accurately assess the value of your gold assets.</p>
+                            <a href="/calculators/gold_conversion" class="btn btn-outline-primary mt-3">Use Converter</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About section with image -->
+        <section class="about-section py-5" id="about">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6" data-aos="fade-right" data-aos-duration="1000">
+                        <div class="about-image-container">
+                            <img src="https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80" class="img-fluid rounded shadow" alt="About AVG">
+                            <div class="floating-badge badge-years">10+ Years<br>Experience</div>
+                            <div class="image-overlay"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="200">
+                        <div class="about-content">
+                            <h2>About <span class="highlight-text">AVG</span> Loans</h2>
+                            <p class="lead">Trusted financial solutions with security and transparency.</p>
+                            <p>At AVG, we specialize in providing financial solutions backed by valuable assets. With years of industry experience, we've built a reputation for reliability, fair valuation, and customer-centric service.</p>
+                            <div class="features-list">
+                                <div class="feature-item" data-aos="fade-up" data-aos-delay="300">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Transparent loan terms with no hidden charges</span>
+                                </div>
+                                <div class="feature-item" data-aos="fade-up" data-aos-delay="400">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Secure storage for your valuable assets</span>
+                                </div>
+                                <div class="feature-item" data-aos="fade-up" data-aos-delay="500">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Competitive interest rates and flexible repayment options</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -144,74 +199,109 @@
         </section>
 
         <!-- Statistics counter section -->
-        <section class="statistics-section">
+        <section class="statistics-section py-5 bg-light">
             <div class="container">
                 <div class="row text-center">
-                    <div class="col-md-3 col-6" data-aos="fade-up" data-aos-duration="800">
+                    <div class="col-md-4" data-aos="fade-up" data-aos-duration="800">
                         <div class="counter-box">
-                            <div class="counter" data-target="10000">0</div>
-                            <h4>Items Tracked</h4>
+                            <div class="counter" data-target="1000">0</div>
+                            <h4>Satisfied Customers</h4>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+                    <div class="col-md-4" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
                         <div class="counter-box">
-                            <div class="counter" data-target="500">0</div>
-                            <h4>Daily Transactions</h4>
+                            <div class="counter" data-target="250">0</div>
+                            <h4>Million in Loans</h4>
                         </div>
                     </div>
-                    <div class="col-md-3 col-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="400">
+                    <div class="col-md-4" data-aos="fade-up" data-aos-duration="800" data-aos-delay="400">
                         <div class="counter-box">
-                            <div class="counter" data-target="95">0</div>
-                            <h4>Satisfaction Rate</h4>
-                            <span class="percentage">%</span>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-6" data-aos="fade-up" data-aos-duration="800" data-aos-delay="600">
-                        <div class="counter-box">
-                            <div class="counter" data-target="24">0</div>
-                            <h4>Hour Support</h4>
-                            <span class="percentage">/7</span>
+                            <div class="counter" data-target="99">0</div>
+                            <h4>% Customer Satisfaction</h4>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- About section with parallax effect -->
-        <section class="about-section">
-            <div class="parallax-bg"></div>
-            <div class="container position-relative">
-                <div class="row align-items-center">
-                    <div class="col-md-6" data-aos="fade-right" data-aos-duration="1000">
-                        <div class="about-image-container">
-                            <img src="https://images.unsplash.com/photo-1516397281156-ca07cf9746fc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80" class="img-fluid rounded shadow" alt="About AGV">
-                            <div class="floating-badge badge-years">5+ Years<br>Experience</div>
-                            <div class="image-overlay"></div>
-                        </div>
-                    </div>
-                    <div class="col-md-6" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="200">
-                        <div class="about-content">
-                            <h2>About <span class="highlight-text">AGV</span> System</h2>
-                            <p class="lead">Elevating the art of jewelry management to unprecedented heights.</p>
-                            <p>The AGV Management System represents the pinnacle of jewelry business administration, meticulously designed for discerning owners who demand excellence in inventory control and financial management.</p>
-                            <p>Our comprehensive platform seamlessly integrates cutting-edge technology with intuitive design, ensuring that your precious inventory and critical financial operations are managed with absolute precision.</p>
-
-                            <div class="features-list">
-                                <div class="feature-item" data-aos="fade-up" data-aos-delay="300">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Secure encryption for sensitive financial data</span>
+        <!-- Contact section -->
+        <section class="contact-section py-5" id="contact">
+            <div class="container">
+                <h2 class="section-heading text-center mb-5" data-aos="fade-up">Get in <span class="highlight-text">Touch</span></h2>
+                <div class="row">
+                    <div class="col-lg-6" data-aos="fade-right" data-aos-duration="1000">
+                        <div class="contact-info">
+                            <div class="contact-card">
+                                <div class="icon">
+                                    <i class="fas fa-map-marker-alt"></i>
                                 </div>
-                                <div class="feature-item" data-aos="fade-up" data-aos-delay="400">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Real-time synchronization across all devices</span>
-                                </div>
-                                <div class="feature-item" data-aos="fade-up" data-aos-delay="500">
-                                    <i class="fas fa-check-circle"></i>
-                                    <span>Custom reports tailored to your business needs</span>
+                                <div class="details">
+                                    <h4>Our Location</h4>
+                                    <p>123 Financial District, Main Street, City Name</p>
                                 </div>
                             </div>
-
-                            <a href="#" class="btn btn-primary btn-glow mt-4">Discover Our Story</a>
+                            <div class="contact-card">
+                                <div class="icon">
+                                    <i class="fas fa-phone-alt"></i>
+                                </div>
+                                <div class="details">
+                                    <h4>Call Us</h4>
+                                    <p>+91 9876543210</p>
+                                    <p>+91 8765432109</p>
+                                </div>
+                            </div>
+                            <div class="contact-card">
+                                <div class="icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="details">
+                                    <h4>Email Us</h4>
+                                    <p>info@avgloans.com</p>
+                                    <p>support@avgloans.com</p>
+                                </div>
+                            </div>
+                            <div class="contact-card">
+                                <div class="icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="details">
+                                    <h4>Business Hours</h4>
+                                    <p>Monday - Saturday: 9:00 AM - 6:00 PM</p>
+                                    <p>Sunday: Closed</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="200">
+                        <div class="contact-form-card">
+                            <h3>Send us a message</h3>
+                            <form action="#" method="POST" class="contact-form">
+                                <div class="form-group mb-3">
+                                    <label for="name">Your Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="email">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="phone">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" required>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="service">Interested In</label>
+                                    <select class="form-select" id="service" name="service">
+                                        <option value="land">Land Document Loan</option>
+                                        <option value="gold">Gold Loan</option>
+                                        <option value="other">Other Inquiry</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label for="message">Your Message</label>
+                                    <textarea class="form-control" id="message" name="message" rows="4" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Send Message</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -222,9 +312,9 @@
         <section class="cta-section">
             <div class="container">
                 <div class="cta-content text-center" data-aos="zoom-in">
-                    <h2>Ready to Transform Your Jewelry Business?</h2>
-                    <p>Experience the AGV difference today and elevate your management capabilities.</p>
-                    <a href="#" class="btn btn-light btn-lg mt-4 btn-hover-effect">Get Started Now</a>
+                    <h2>Need Financial Assistance?</h2>
+                    <p>Contact us today to discuss how we can help you with our secure loan options.</p>
+                    <a href="#contact" class="btn btn-light btn-lg mt-4 btn-hover-effect">Contact Us Now</a>
                 </div>
             </div>
         </section>
@@ -237,54 +327,45 @@
                 <div class="row">
                     <div class="col-lg-4 col-md-6">
                         <div class="footer-info">
-                            <h3>AGV</h3>
-                            <p class="pb-3">Luxury jewelry and finance management reimagined for the modern business owner.</p>
+                            <h3>AVG Loans</h3>
+                            <p class="pb-3">Secure and trusted financial solutions for your valuable assets.</p>
                             <div class="social-links mt-3">
-                                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
                                 <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
                                 <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
                                 <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                                <a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-lg-2 col-md-6 footer-links">
-                        <h4>Navigation</h4>
+                        <h4>Quick Links</h4>
                         <ul>
                             <li><i class="fas fa-chevron-right"></i> <a href="#">Home</a></li>
-                            <li><i class="fas fa-chevron-right"></i> <a href="#">Features</a></li>
-                            <li><i class="fas fa-chevron-right"></i> <a href="#">About</a></li>
-                            <li><i class="fas fa-chevron-right"></i> <a href="#">Contact</a></li>
-                            <li><i class="fas fa-chevron-right"></i> <a href="/login">Login</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#services">Services</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#about">About</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#calculators">Calculators</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#contact">Contact</a></li>
                         </ul>
-                    </div>
                     </div>
 
                     <div class="col-lg-2 col-md-6 footer-links">
-                        <h4>Features</h4>
+                        <h4>Our Services</h4>
                         <ul>
-                            <li><i class="fas fa-chevron-right"></i> <a href="#">Inventory</a></li>
-                            <li><i class="fas fa-chevron-right"></i> <a href="#">Finance</a></li>
-                            <li><i class="fas fa-chevron-right"></i> <a href="#">Reports</a></li>
-                            <li><i class="fas fa-chevron-right"></i> <a href="#">Analytics</a></li>
-                            <li><i class="fas fa-chevron-right"></i> <a href="#">Security</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">Land Document Loans</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">Gold Loans</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">Financial Advisory</a></li>
+                            <li><i class="fas fa-chevron-right"></i> <a href="#">Asset Valuation</a></li>
                         </ul>
                     </div>
 
                     <div class="col-lg-4 col-md-6">
                         <h4>Contact Us</h4>
                         <p>
-                            <i class="fas fa-map-marker-alt"></i> 123 Luxury Avenue, Finance District<br>
-                            <i class="fas fa-phone"></i> +1 (555) 123-4567<br>
-                            <i class="fas fa-envelope"></i> contact@agvmanagement.com<br>
+                            <i class="fas fa-map-marker-alt"></i> 123 Financial District, Main Street<br>
+                            <i class="fas fa-phone"></i> +91 9876543210<br>
+                            <i class="fas fa-envelope"></i> info@avgloans.com<br>
                         </p>
-                        <div class="footer-newsletter">
-                            <h4>Subscribe to Our Newsletter</h4>
-                            <form action="#">
-                                <input type="email" name="email" placeholder="Your email">
-                                <button type="submit"><i class="fas fa-paper-plane"></i></button>
-                            </form>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -293,10 +374,10 @@
         <div class="footer-bottom text-center">
             <div class="container">
                 <div class="copyright">
-                    &copy; <span id="current-year">2025</span> <strong><span>AGV Management System</span></strong>. All Rights Reserved
+                    &copy; <span id="current-year">2023</span> <strong><span>AVG Loan Management System</span></strong>. All Rights Reserved
                 </div>
                 <div class="credits">
-                    Designed for premium jewelry business management
+                    Secure financial solutions for your needs
                 </div>
             </div>
         </div>
@@ -313,6 +394,6 @@
     <!-- Particles.js for background effects -->
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <!-- Custom JS -->
-    <script src="static/script.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

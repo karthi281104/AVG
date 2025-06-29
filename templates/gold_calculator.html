@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold Loan Calculator - AVG Loans</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='calculators.css') }}" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header with navigation -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <span class="fw-bold">AVG</span> <span class="text-muted">Loans</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/#services">Services</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/calculators">Calculators</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/#about">About</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/#contact">Contact</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn-nav" href="/login">Login</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main content -->
+    <main class="calculator-page">
+        <section class="calculator-header">
+            <div class="container">
+                <h1>Gold Loan Calculator</h1>
+                <p>Estimate your gold loan value based on weight, purity, and current gold rate.</p>
+            </div>
+        </section>
+
+        <section class="calculator-section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="calculator-card">
+                            <div class="card-header">
+                                <h3>Gold Details</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="goldLoanForm">
+                                    <div class="mb-4">
+                                        <label for="goldWeight" class="form-label">Gold Weight (grams)</label>
+                                        <input type="number" class="form-control" id="goldWeight" min="1" step="0.1" value="10">
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="goldPurity" class="form-label">Gold Purity (%)</label>
+                                        <input type="number" class="form-control" id="goldPurity" min="1" max="100" step="0.1" value="91.6">
+                                        <div class="form-text">
+                                            <small>Common gold purities: 24K = 99.9%, 22K = 91.6%, 18K = 75%</small>
+                                            <a href="/calculators/gold_conversion" class="ms-2">Use converter</a>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="goldRate" class="form-label">Gold Rate (₹ per gram)</label>
+                                        <input type="number" class="form-control" id="goldRate" min="1" step="1" value="{{ gold_rate|default(5000) }}">
+                                        <div class="form-text">
+                                            <small>Current market rate for 24K gold</small>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="loanToValue" class="form-label">Loan-to-Value Ratio (%)</label>
+                                        <input type="number" class="form-control" id="loanToValue" min="1" max="100" step="1" value="75">
+                                        <div class="range-slider mt-2">
+                                            <input type="range" class="form-range" id="loanToValueRange" min="50" max="90" step="1" value="75">
+                                            <div class="range-labels">
+                                                <span>50%</span>
+                                                <span>90%</span>
+                                            </div>
+                                        </div>
+                                        <div class="form-text">
+                                            <small>Percentage of gold value offered as loan</small>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" id="calculateBtn" class="btn btn-primary w-100">Calculate Loan Amount</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="results-card">
+                            <div class="card-header">
+                                <h3>Loan Estimate</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="result-display mb-4">
+                                    <div class="text-center mb-4">
+                                        <img src="https://images.unsplash.com/photo-1610375461369-d613b564f4c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" class="img-fluid rounded" alt="Gold" style="max-height: 200px;">
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6 mb-4">
+                                            <div class="result-box">
+                                                <h4>Gold Value</h4>
+                                                <div class="result-value" id="goldValue">₹ 0</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 mb-4">
+                                            <div class="result-box">
+                                                <h4>Maximum Loan Amount</h4>
+                                                <div class="result-value" id="maxLoanAmount">₹ 0</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="info-section">
+                                    <h4>Gold Loan Information</h4>
+                                    <p>Gold loans are secured loans where gold jewelry or ornaments are used as collateral. The loan amount depends on:</p>
+                                    <ul>
+                                        <li><strong>Weight of Gold:</strong> More weight means a higher loan amount</li>
+                                        <li><strong>Purity of Gold:</strong> Higher purity (24K being purest) fetches better value</li>
+                                        <li><strong>Market Price:</strong> Current gold rate in the market</li>
+                                        <li><strong>Loan-to-Value (LTV) Ratio:</strong> The percentage of gold value that will be offered as loan</li>
+                                    </ul>
+
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> The actual loan amount may vary based on the evaluation by our experts. Visit our office for an accurate assessment.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-bottom text-center">
+            <div class="container">
+                <div class="copyright">
+                    &copy; <span id="current-year">2025</span> <strong><span>AVG Loan Management System</span></strong>. All Rights Reserved
+                </div>
+                <div class="credits">
+                    Secure financial solutions for your needs
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update year in footer
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+
+            // Sync range slider with input field
+            document.getElementById('loanToValueRange').addEventListener('input', function() {
+                document.getElementById('loanToValue').value = this.value;
+            });
+
+            document.getElementById('loanToValue').addEventListener('input', function() {
+                document.getElementById('loanToValueRange').value = this.value;
+            });
+
+            // Calculate gold loan function
+            document.getElementById('calculateBtn').addEventListener('click', function() {
+                calculateGoldLoan();
+            });
+
+            function calculateGoldLoan() {
+                const weight = parseFloat(document.getElementById('goldWeight').value);
+                const purity = parseFloat(document.getElementById('goldPurity').value);
+                const ratePerGram = parseFloat(document.getElementById('goldRate').value);
+                const loanToValue = parseFloat(document.getElementById('loanToValue').value);
+
+                // Call the API
+                fetch('/api/calculate/gold', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        weight: weight,
+                        purity: purity,
+                        rate_per_gram: ratePerGram,
+                        loan_to_value: loanToValue
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Update results
+                    document.getElementById('goldValue').textContent = '₹ ' + formatNumber(data.gold_value);
+                    document.getElementById('maxLoanAmount').textContent = '₹ ' + formatNumber(data.max_loan_amount);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Fallback calculation if API fails
+                    fallbackCalculation(weight,
