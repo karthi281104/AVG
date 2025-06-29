@@ -10,6 +10,11 @@ def home():
 def gold_rate():
     return render_template('gold_rate.html')
 
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
 @app.route('/submit', methods=['POST'])
 def submit():
     name = request.form.get('name')

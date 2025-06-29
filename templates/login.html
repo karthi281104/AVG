@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGV - Login</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="static/style.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="login-page">
+    <!-- Semi-transparent fixed header with animated elements -->
+    <header class="fixed-top">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <!-- Animated company logo and name on left side -->
+                <a class="navbar-brand" href="/">
+                    <span class="logo-text">A<span class="highlight">V</span>G</span>
+                    <span class="tagline">Luxury Redefined</span>
+                </a>
+
+                <!-- Navigation toggle button for mobile -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Navigation links with hover effects -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="gold">Gold Rates</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Inventory</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Finance</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Reports</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active btn-nav" href="login">Login</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main content -->
+    <main style="padding-top: 100px">
+        <!-- Login section -->
+        <section class="login-section">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-5">
+                        <div class="login-card" data-aos="fade-up" data-aos-duration="800">
+                            <div class="text-center mb-4">
+                                <h2>Welcome to <span class="highlight-text">AGV</span></h2>
+                                <p>Login to manage your jewelry inventory and finances</p>
+                            </div>
+
+                            <div class="login-tabs">
+                                <ul class="nav nav-pills nav-fill mb-4" id="loginTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button">Login</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-pane" type="button">Register</button>
+                                    </li>
+                                </ul>
+
+                                <div class="tab-content" id="loginTabsContent">
+                                    <!-- Login Form -->
+                                    <div class="tab-pane fade show active" id="login-pane" role="tabpanel" aria-labelledby="login-tab">
+                                        <form id="loginForm">
+                                            <div class="alert alert-danger d-none" id="loginError"></div>
+
+                                            <div class="form-floating mb-3">
+                                                <input type="email" class="form-control" id="loginEmail" placeholder="name@example.com" required>
+                                                <label for="loginEmail"><i class="fas fa-envelope me-2"></i>Email address</label>
+                                            </div>
+
+                                            <div class="form-floating mb-3">
+                                                <input type="password" class="form-control" id="loginPassword" placeholder="Password" required>
+                                                <label for="loginPassword"><i class="fas fa-lock me-2"></i>Password</label>
+                                                <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
+                                                    <i class="far fa-eye"></i>
+                                                </button>
+                                            </div>
+
+                                            <div class="d-flex justify-content-between mb-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                                                    <label class="form-check-label" for="rememberMe">
+                                                        Remember me
+                                                    </label>
+                                                </div>
+                                                <a href="#" class="forgot-link" id="forgotPasswordLink">Forgot password?</a>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-primary w-100 btn-glow">Login</button>
+                                        </form>
+
+                                        <!-- Divider -->
+                                        <div class="divider my-4">
+                                            <span>OR</span>
+                                        </div>
+
+                                        <!-- Social Login Buttons -->
+                                        <div class="social-login">
+                                            <button type="button" class="btn btn-outline-secondary w-100 mb-3" id="googleLogin">
+                                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18">
+                                                Continue with Google
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Register Form -->
+                                    <div class="tab-pane fade" id="register-pane" role="tabpanel" aria-labelledby="register-tab">
+                                        <form id="registerForm">
+                                            <div class="alert alert-danger d-none" id="registerError"></div>
+
+                                            <div class="form-floating mb-3">
+                                                <input type="text" class="form-control" id="registerName" placeholder="Full Name" required>
+                                                <label for="registerName"><i class="fas fa-user me-2"></i>Full Name</label>
+                                            </div>
+
+                                            <div class="form-floating mb-3">
+                                                <input type="email" class="form-control" id="registerEmail" placeholder="name@example.com" required>
+                                                <label for="registerEmail"><i class="fas fa-envelope me-2"></i>Email address</label>
+                                            </div>
+
+                                            <div class="form-floating mb-3">
+                                                <input type="password" class="form-control" id="registerPassword" placeholder="Password" required>
+                                                <label for="registerPassword"><i class="fas fa-lock me-2"></i>Password</label>
+                                                <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">
+                                                    <i class="far fa-eye"></i>
+                                                </button>
+                                            </div>
+
+                                            <div class="form-floating mb-4">
+                                                <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
+                                                <label for="confirmPassword"><i class="fas fa-lock me-2"></i>Confirm Password</label>
+                                                <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                                                    <i class="far fa-eye"></i>
+                                                </button>
+                                            </div>
+
+                                            <button type="submit" class="btn btn-primary w-100 btn-glow">Create Account</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Forgot Password Modal -->
+                            <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Reset Password</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="resetPasswordForm">
+                                                <div class="alert alert-info">
+                                                    Enter your email address and we'll send you a link to reset your password.
+                                                </div>
+                                                <div class="alert alert-danger d-none" id="resetError"></div>
+                                                <div class="alert alert-success d-none" id="resetSuccess"></div>
+
+                                                <div class="form-floating mb-3">
+                                                    <input type="email" class="form-control" id="resetEmail" placeholder="name@example.com" required>
+                                                    <label for="resetEmail"><i class="fas fa-envelope me-2"></i>Email address</label>
+                                                </div>
+
+                                                <button type="submit" class="btn btn-primary w-100">Send Reset Link</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer with modern design -->
+    <footer class="footer">
+        <div class="footer-bottom text-center">
+            <div class="container">
+                <div class="copyright">
+                    &copy; <span id="current-year">2025</span> <strong><span>AGV Management System</span></strong>. All Rights Reserved
+                </div>
+                <div class="credits">
+                    Designed for premium jewelry business management
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <!-- AOS Animation Library -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <!-- Add Firebase Auth -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <!-- Custom JS -->
+    <script src="static/firebase-config.js"></script>
+    <script src="static/auth.js"></script>
+    <script src="static/script.js"></script>
+</body>
+</html>
