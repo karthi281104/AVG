@@ -405,7 +405,8 @@
                             },
                             body: JSON.stringify({
                                 uid: firebase.auth().currentUser.uid,
-                                email: firebase.auth().currentUser.email
+                                email: firebase.auth().currentUser.email,
+                                idToken: idToken
                             })
                         });
                     })

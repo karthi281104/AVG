@@ -131,6 +131,7 @@ def create_app(config_name='default'):
         # Set session data for Flask authentication
         session['user_id'] = user.id
         session['firebase_uid'] = data.get('uid')
+        session['firebase_token'] = request.json.get('idToken')  # Store the token for future API calls
 
         return jsonify({
             'status': 'success',
@@ -149,8 +150,69 @@ def create_app(config_name='default'):
         session.clear()
         return redirect(url_for('home'))
 
-    # Rest of your routes...
-    # ...
+    # Add the dashboard route
+    @app.route('/dashboard')
+    def dashboard():
+        # Check if user is authenticated either by Flask-Login or Firebase
+        if not current_user.is_authenticated and 'user_id' not in session:
+            return redirect(url_for('login'))
+
+        # Get summary statistics
+        total_loans = Loan.query.count()
+        active_loans = Loan.query.filter_by(status='active').count()
+        total_customers = Customer.query.count()
+
+        # Calculate total loan amount and outstanding amount
+        loans = Loan.query.all()
+        total_loan_amount = sum(loan.loan_amount for loan in loans)
+        outstanding_amount = sum(loan.remaining_amount for loan in loans if loan.status != LoanStatus.PAID.value)
+
+        # Get recent loans
+        recent_loans = Loan.query.order_by(Loan.created_at.desc()).limit(5).all()
+
+        # Get recent customers
+        recent_customers = Customer.query.order_by(Customer.created_at.desc()).limit(5).all()
+
+        # Get overdue loans
+        overdue_loans = Loan.query.filter_by(status=LoanStatus.OVERDUE.value).count()
+
+        stats = {
+            'total_loans': total_loans,
+            'active_loans': active_loans,
+            'total_customers': total_customers,
+            'total_loan_amount': format_currency(total_loan_amount),
+            'outstanding_amount': format_currency(outstanding_amount),
+            'overdue_loans': overdue_loans
+        }
+
+        return render_template('dashboard.html',
+                               stats=stats,
+                               recent_loans=recent_loans,
+                               recent_customers=recent_customers)
+
+    # API endpoint to get user info
+    @app.route('/api/user/info')
+    def get_user_info():
+        if current_user.is_authenticated:
+            # User authenticated with Flask-Login
+            return jsonify({
+                'authenticated': True,
+                'username': current_user.username,
+                'email': current_user.email,
+                'role': current_user.role
+            })
+        elif 'user_id' in session:
+            # User authenticated with Firebase
+            user = User.query.get(session['user_id'])
+            if user:
+                return jsonify({
+                    'authenticated': True,
+                    'username': user.username,
+                    'email': user.email,
+                    'role': user.role
+                })
+
+        return jsonify({'authenticated': False}), 401
 
     return app
 
