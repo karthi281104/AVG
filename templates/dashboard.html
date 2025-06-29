@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AGV Loan Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #8a2be2;
+            --primary-light: #9d4edd;
+            --primary-dark: #6a0dad;
+            --secondary-color: #180a3d;
+            --accent-color: #ffb86c;
+            --light-bg: #f8f9fa;
+            --dark-text: #343a40;
+            --gray-light: #f0f0f0;
+            --gray-medium: #e0e0e0;
+            --gray-dark: #6c757d;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --info: #17a2b8;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Dashboard Layout */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--white);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            position: fixed;
+            height: 100%;
+            z-index: 1000;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid var(--gray-medium);
+        }
+
+        .sidebar-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-brand i {
+            margin-right: 12px;
+            font-size: 24px;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .user-info {
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--gray-medium);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 20px;
+            margin-right: 15px;
+            box-shadow: 0 5px 10px rgba(138, 43, 226, 0.2);
+        }
+
+        .user-details h5 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        .user-details p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--gray-dark);
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 25px;
+            color: var(--dark-text);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-link i {
+            margin-right: 15px;
+            font-size: 18px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(138, 43, 226, 0.05);
+            color: var(--primary-color);
+        }
+
+        .nav-link.active {
+            background-color: rgba(138, 43, 226, 0.1);
+            color: var(--primary-color);
+            border-left: 4px solid var(--primary-color);
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid var(--gray-medium);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background-color: #fff1f0;
+            color: #e53935;
+            border: 1px solid #ffcdd2;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .logout-btn i {
+            margin-right: 10px;
+        }
+
+        .logout-btn:hover {
+            background-color: #ffebee;
+            box-shadow: 0 2px 8px rgba(229, 57, 53, 0.15);
+        }
+
+        /* Main content */
+        .main-content {
+            margin-left: 280px;
+            padding: 20px;
+            width: calc(100% - 280px);
+            transition: all 0.3s;
+        }
+
+        .header {
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark-text);
+            font-family: 'Playfair Display', serif;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .date-display {
+            font-size: 14px;
+            color: var(--gray-dark);
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+
+        .date-display i {
+            margin-right: 8px;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--dark-text);
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+
+        /* Stats Cards */
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .stat-card:last-child {
+            margin-right: 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 24px;
+            color: var(--white);
+        }
+
+        .icon-loans {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+        }
+
+        .icon-customers {
+            background: linear-gradient(135deg, #f83600, #f9d423);
+        }
+
+        .icon-amount {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+
+        .icon-overdue {
+            background: linear-gradient(135deg, #eb3349, #f45c43);
+        }
+
+        .stat-details h4 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark-text);
+        }
+
+        .stat-details p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: var(--gray-dark);
+        }
+
+        /* Charts Section */
+        .charts-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            flex: 1;
+            min-width: 300px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container:last-child {
+            margin-right: 0;
+        }
+
+        .chart-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        /* Recent Items Table */
+        .table-container {
+            background-color: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        .view-all {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .view-all:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: var(--dark-text);
+            padding: 12px 8px;
+            font-size: 14px;
+        }
+
+        .table td {
+            vertical-align: middle;
+            padding: 12px 8px;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .status-overdue {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .status-paid {
+            background-color: rgba(23, 162, 184, 0.1);
+            color: #17a2b8;
+        }
+
+        .status-pending {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-dark);
+            background-color: var(--gray-light);
+            border: none;
+            transition: all 0.3s;
+            margin-right: 5px;
+            font-size: 14px;
+        }
+
+        .action-btn:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        /* Responsive */
+        @media (max-width: 991px) {
+            .sidebar {
+                transform: translateX(-100%);
+                box-shadow: none;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            body.sidebar-open .sidebar {
+                transform: translateX(0);
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .stat-card {
+                min-width: calc(50% - 20px);
+            }
+
+            .chart-container {
+                min-width: 100%;
+                margin-right: 0;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .stat-card {
+                min-width: 100%;
+                margin-right: 0;
+            }
+
+            .date-display {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="sidebar-brand">
+                    <i class="fas fa-university"></i>
+                    AGV Loans
+                </h1>
+            </div>
+
+            <div class="sidebar-content">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h5 id="user-name">Admin User</h5>
+                        <p id="user-role">Administrator</p>
+                    </div>
+                </div>
+
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/dashboard" class="nav-link active">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/customers" class="nav-link">
+                            <i class="fas fa-users"></i>
+                            <span>Customers</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/loans" class="nav-link">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <span>Loans</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/payments" class="nav-link">
+                            <i class="fas fa-hand-holding-usd"></i>
+                            <span>Payments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/reports" class="nav-link">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Reports</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/settings" class="nav-link">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="#" class="logout-btn" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <button class="menu-toggle" id="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">Dashboard</h1>
+                <div class="header-actions">
+                    <div class="date-display">
+                        <i class="far fa-calendar-alt"></i>
+                        <span id="current-date">June 29, 2025</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Stats Cards -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon icon-loans">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h4>{{ stats.total_loans }}</h4>
+                        <p>Total Loans</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-customers">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h4>{{ stats.total_customers }}</h4>
+                        <p>Total Customers</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-amount">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h4>{{ stats.total_loan_amount }}</h4>
+                        <p>Total Loan Amount</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-overdue">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h4>{{ stats.overdue_loans }}</h4>
+                        <p>Overdue Loans</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-row">
+                <div class="chart-container">
+                    <h2 class="chart-title">Loan Distribution</h2>
+                    <canvas id="loanDistributionChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <h2 class="chart-title">Monthly Performance</h2>
+                    <canvas id="monthlyPerformanceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Loans Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2 class="table-title">Recent Loans</h2>
+                    <a href="/loans" class="view-all">View All <i class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in recent_loans %}
+                            <tr>
+                                <td>{{ loan.loan_reference }}</td>
+                                <td>{{ loan.customer.name }}</td>
+                                <td>{{ loan.loan_amount|format_currency }}</td>
+                                <td>{{ loan.created_at.strftime('%d %b, %Y') }}</td>
+                                <td>
+                                    {% if loan.status == 'active' %}
+                                        <span class="status-badge status-active">Active</span>
+                                    {% elif loan.status == 'overdue' %}
+                                        <span class="status-badge status-overdue">Overdue</span>
+                                    {% elif loan.status == 'paid' %}
+                                        <span class="status-badge status-paid">Paid</span>
+                                    {% elif loan.status == 'pending' %}
+                                        <span class="status-badge status-pending">Pending</span>
+                                    {% else %}
+                                        <span class="status-badge">{{ loan.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="/loans/{{ loan.id }}" class="action-btn" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="/loans/{{ loan.id }}/edit" class="action-btn" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Customers Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2 class="table-title">Recent Customers</h2>
+                    <a href="/customers" class="view-all">View All <i class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Joined Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for customer in recent_customers %}
+                            <tr>
+                                <td>{{ customer.name }}</td>
+                                <td>{{ customer.phone }}</td>
+                                <td>{{ customer.email or 'N/A' }}</td>
+                                <td>{{ customer.created_at.strftime('%d %b, %Y') }}</td>
+                                <td>
+                                    <a href="/customers/{{ customer.id }}" class="action-btn" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="/customers/{{ customer.id }}/edit" class="action-btn" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const now = new Date();
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', dateOptions);
+
+            // Toggle menu for mobile view
+            const menuToggle = document.getElementById('menu-toggle');
+            menuToggle.addEventListener('click', function() {
+                document.body.classList.toggle('sidebar-open');
+            });
+
+            // Logout functionality
+            const logoutBtn = document.getElementById('logout-btn');
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                // Check if Firebase is configured
+                if (typeof firebase !== 'undefined' && !window.firebaseNotConfigured) {
+                    // Firebase logout
+                    firebase.auth().signOut()
+                        .then(() => {
+                            // Call our backend to clear session
+                            return fetch('/api/auth/logout', {
+                                method: 'POST'
+                            });
+                        })
+                        .then(() => {
+                            window.location.href = '/login';
+                        })
+                        .catch(error => {
+                            console.error('Logout error:', error);
+                            // Redirect anyway
+                            window.location.href = '/login';
+                        });
+                } else {
+                    // Standard logout
+                    window.location.href = '/logout';
+                }
+            });
+
+            // Check authentication
+            if (typeof firebase !== 'undefined' && !window.firebaseNotConfigured) {
+                firebase.auth().onAuthStateChanged(user => {
+                    if (user) {
+                        // Update user display name
+                        document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
+                    } else {
+                        // Not logged in, redirect to login
+                        window.location.href = '/login';
+                    }
+                });
+            }
+
+            // Charts
+            const loanDistributionCtx = document.getElementById('loanDistributionChart').getContext('2d');
+            const loanDistributionChart = new Chart(loanDistributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Gold Loans', 'Land Loans', 'Other Loans'],
+                    datasets: [{
+                        data: [65, 30, 5],
+                        backgroundColor: [
+                            '#f9d423',
+                            '#38ef7d',
+                            '#6a11cb'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: "'Poppins', sans-serif",
+                                    size: 12
+                                },
+                                padding: 20
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            const monthlyPerformanceCtx = document.getElementById('monthlyPerformanceChart').getContext('2d');
+            const monthlyPerformanceChart = new Chart(monthlyPerformanceCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'New Loans',
+                        data: [12, 19, 15, 17, 22, 25],
+                        borderColor: '#6a11cb',
+                        tension: 0.4,
+                        fill: false
+                    }, {
+                        label: 'Loan Payments',
+                        data: [8, 15, 12, 16, 19, 21],
+                        borderColor: '#38ef7d',
+                        tension: 0.4,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: "'Poppins', sans-serif",
+                                    size: 12
+                                },
+                                padding: 20
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    family: "'Poppins', sans-serif"
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    family: "'Poppins', sans-serif"
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

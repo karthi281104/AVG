@@ -185,21 +185,51 @@
             margin-right: 5px;
         }
 
-        #password-strength {
-            height: 4px;
-            margin-top: 5px;
-            width: 100%;
-            background: #ddd;
-            border-radius: 2px;
-            position: relative;
-            overflow: hidden;
+        #login-error {
             display: none;
         }
 
-        #password-strength-meter {
+        .loading-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
             height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--gradient-start);
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .toggle-auth-mode {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
         }
     </style>
 </head>
@@ -207,6 +237,10 @@
     <div class="security-pattern"></div>
 
     <div class="login-container">
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+
         <div class="login-header">
             <h1>AGV Loans</h1>
             <p>Confidential Management System</p>
@@ -215,40 +249,55 @@
             </div>
         </div>
         <div class="login-form">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category if category != 'error' else 'danger' }}" role="alert">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+            <div class="alert alert-danger" role="alert" id="login-error" style="display:none;">
+                Invalid email or password. Please try again.
+            </div>
 
-            <form method="post" action="{{ url_for('login') }}" id="loginForm">
+            <!-- Firebase Login Form -->
+            <form id="firebaseLoginForm" class="auth-form active">
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="username" name="username" class="form-control" required autocomplete="off">
+                    <label for="email">Email Address</label>
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" name="email" class="form-control" required autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
                     <i class="fas fa-lock"></i>
                     <input type="password" id="password" name="password" class="form-control" required>
-                    <div id="password-strength">
-                        <div id="password-strength-meter"></div>
-                    </div>
                 </div>
-                <div class="d-flex justify-content-between">
-                    <div class="remember-me">
-                        <input type="checkbox" id="remember" name="remember">
-                        <label for="remember">Remember this device</label>
-                    </div>
+                <div class="remember-me">
+                    <input type="checkbox" id="firebase-remember" name="remember">
+                    <label for="firebase-remember">Remember this device</label>
                 </div>
                 <button type="submit" class="btn btn-primary w-100 btn-login">
                     <i class="fas fa-sign-in-alt me-2"></i> Secure Login
                 </button>
             </form>
+
+            <!-- Standard Login Form -->
+            <form id="standardLoginForm" class="auth-form" action="{{ url_for('login') }}" method="post">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" name="username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="std-password">Password</label>
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="std-password" name="password" class="form-control" required>
+                </div>
+                <div class="remember-me">
+                    <input type="checkbox" id="std-remember" name="remember">
+                    <label for="std-remember">Remember me</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-login">
+                    <i class="fas fa-sign-in-alt me-2"></i> Login
+                </button>
+            </form>
+
+            <div class="toggle-auth-mode" id="toggle-auth-mode">
+                <span id="toggle-text">Use standard login instead</span>
+            </div>
 
             <a href="/" class="back-link">
                 <i class="fas fa-arrow-left me-1"></i> Return to Home
@@ -256,82 +305,154 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+    <!-- Custom Firebase Config -->
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
     <script>
-        // Simple password strength indicator
         document.addEventListener('DOMContentLoaded', function() {
+            const firebaseLoginForm = document.getElementById('firebaseLoginForm');
+            const standardLoginForm = document.getElementById('standardLoginForm');
+            const toggleAuthMode = document.getElementById('toggle-auth-mode');
+            const toggleText = document.getElementById('toggle-text');
+            const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
-            const strengthMeter = document.getElementById('password-strength');
-            const meter = document.getElementById('password-strength-meter');
+            const firebaseRemember = document.getElementById('firebase-remember');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const loginError = document.getElementById('login-error');
 
-            passwordInput.addEventListener('input', function() {
-                strengthMeter.style.display = 'block';
-                const password = this.value;
+            // Check if Firebase is properly configured
+            if (window.firebaseNotConfigured) {
+                // If Firebase is not configured, show standard login by default
+                firebaseLoginForm.classList.remove('active');
+                standardLoginForm.classList.add('active');
+                toggleText.textContent = 'Use Firebase login instead';
+                toggleAuthMode.style.display = 'none'; // Hide toggle since Firebase isn't available
 
-                // Very simple strength calculation
-                let strength = 0;
+                // Show warning
+                loginError.textContent = 'Firebase not configured. Using standard login.';
+                loginError.classList.remove('alert-danger');
+                loginError.classList.add('alert-warning');
+                loginError.style.display = 'block';
+            } else {
+                // Check if user is already logged in with Firebase
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        // User is signed in, redirect to dashboard
+                        window.location.href = '/dashboard';
+                    }
+                });
+            }
 
-                // Length check
-                if(password.length >= 8) {
-                    strength += 25;
-                }
-
-                // Uppercase check
-                if(/[A-Z]/.test(password)) {
-                    strength += 25;
-                }
-
-                // Number check
-                if(/[0-9]/.test(password)) {
-                    strength += 25;
-                }
-
-                // Special character check
-                if(/[^A-Za-z0-9]/.test(password)) {
-                    strength += 25;
-                }
-
-                // Update the meter
-                meter.style.width = strength + '%';
-
-                // Set color based on strength
-                if(strength < 50) {
-                    meter.style.backgroundColor = '#ff4d4d';
-                } else if(strength < 75) {
-                    meter.style.backgroundColor = '#ffd633';
+            // Toggle between Firebase and standard login
+            toggleAuthMode.addEventListener('click', function() {
+                if (firebaseLoginForm.classList.contains('active')) {
+                    firebaseLoginForm.classList.remove('active');
+                    standardLoginForm.classList.add('active');
+                    toggleText.textContent = 'Use Firebase login instead';
                 } else {
-                    meter.style.backgroundColor = '#66cc66';
-                }
-
-                // Hide meter if password is empty
-                if(password === 'wh') {
-                    strengthMeter.style.display = 'none';
+                    if (!window.firebaseNotConfigured) {
+                        standardLoginForm.classList.remove('active');
+                        firebaseLoginForm.classList.add('active');
+                        toggleText.textContent = 'Use standard login instead';
+                    }
                 }
             });
 
-            // Simple login protection
-            const loginForm = document.getElementById('loginForm');
-            let loginAttempts = 0;
+            // Handle Firebase login
+            firebaseLoginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
 
-            loginForm.addEventListener('submit', function(e) {
-                // This is just a client-side example.
-                // Real security should be implemented on the server side
-                loginAttempts++;
-
-                // After 3 failed attempts, add a delay
-                if(loginAttempts >= 3) {
-                    const submitBtn = document.querySelector('.btn-login');
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Please wait...';
-
-                    setTimeout(() => {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt me-2"></i> Secure Login';
-                    }, 5000);
+                if (window.firebaseNotConfigured) {
+                    loginError.textContent = 'Firebase is not properly configured. Please use standard login.';
+                    loginError.style.display = 'block';
+                    return;
                 }
+
+                // Show loading overlay
+                loadingOverlay.style.display = 'flex';
+                loginError.style.display = 'none';
+
+                const email = emailInput.value.trim();
+                const password = passwordInput.value;
+                const persistence = firebaseRemember.checked ?
+                    firebase.auth.Auth.Persistence.LOCAL :
+                    firebase.auth.Auth.Persistence.SESSION;
+
+                // First set persistence
+                firebase.auth().setPersistence(persistence)
+                    .then(() => {
+                        // Then sign in
+                        return firebase.auth().signInWithEmailAndPassword(email, password);
+                    })
+                    .then((userCredential) => {
+                        // Get the user's ID token
+                        return userCredential.user.getIdToken();
+                    })
+                    .then((idToken) => {
+                        // Send the token to your backend via HTTP
+                        return fetch('/api/auth/verify', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                uid: firebase.auth().currentUser.uid,
+                                email: firebase.auth().currentUser.email
+                            })
+                        });
+                    })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.status === 'success') {
+                            // Redirect to dashboard
+                            window.location.href = '/dashboard';
+                        } else {
+                            // Handle backend error
+                            throw new Error('Backend authentication failed');
+                        }
+                    })
+                    .catch((error) => {
+                        // Hide loading overlay
+                        loadingOverlay.style.display = 'none';
+
+                        // Show error message
+                        console.error("Login error:", error);
+
+                        if (error.code) {
+                            // Firebase Auth error
+                            switch(error.code) {
+                                case 'auth/user-not-found':
+                                    loginError.textContent = 'No account found with this email address.';
+                                    break;
+                                case 'auth/wrong-password':
+                                    loginError.textContent = 'Invalid password. Please try again.';
+                                    break;
+                                case 'auth/invalid-email':
+                                    loginError.textContent = 'Please enter a valid email address.';
+                                    break;
+                                case 'auth/user-disabled':
+                                    loginError.textContent = 'This account has been disabled.';
+                                    break;
+                                case 'auth/too-many-requests':
+                                    loginError.textContent = 'Too many unsuccessful login attempts. Please try again later.';
+                                    break;
+                                default:
+                                    loginError.textContent = 'An error occurred. Please try again.';
+                            }
+                        } else {
+                            loginError.textContent = 'Authentication failed. Please try again.';
+                        }
+
+                        loginError.style.display = 'block';
+                    });
             });
         });
     </script>
