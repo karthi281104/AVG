@@ -344,9 +344,9 @@
             } else {
                 // Check if user is already logged in with Firebase
                 firebase.auth().onAuthStateChanged((user) => {
-                    if (user) {
-                        // User is signed in, redirect to dashboard
-                        window.location.href = '/dashboard';
+                    if (user && !window.location.href.includes('login')) {
+                    // Only redirect if we're not already on the login page
+                    window.location.href = '/dashboard';
                     }
                 });
             }

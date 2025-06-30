@@ -775,17 +775,77 @@
             });
 
             // Check authentication
-            if (typeof firebase !== 'undefined' && !window.firebaseNotConfigured) {
-                firebase.auth().onAuthStateChanged(user => {
-                    if (user) {
-                        // Update user display name
-                        document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
-                    } else {
-                        // Not logged in, redirect to login
+// Replace the authentication check in dashboard.html
+// Check authentication
+if (typeof firebase !== 'undefined' && !window.firebaseNotConfigured) {
+    let authCheckComplete = false;
+
+    firebase.auth().onAuthStateChanged(user => {
+        authCheckComplete = true;
+        if (user) {
+            // Update user display name
+            document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
+        } else {
+            // Before redirecting to login, check if the user is authenticated via session
+            fetch('/api/user/info')
+                .then(response => {
+                    if (!response.ok) {
+                        // Not authenticated at all, redirect to login
                         window.location.href = '/login';
                     }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.authenticated) {
+                        window.location.href = '/login';
+                    } else {
+                        // Update user info from Flask session
+                        document.getElementById('user-name').textContent = data.username || "User";
+                        document.getElementById('user-role').textContent = data.role || "User";
+                    }
+                })
+                .catch(err => {
+                    console.error('Error checking authentication:', err);
                 });
+        }
+    });
+
+    // Fallback if Firebase auth doesn't respond
+    setTimeout(() => {
+        if (!authCheckComplete) {
+            fetch('/api/user/info')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.authenticated) {
+                        document.getElementById('user-name').textContent = data.username || "User";
+                        document.getElementById('user-role').textContent = data.role || "User";
+                    } else {
+                        window.location.href = '/login';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error checking authentication:', err);
+                    window.location.href = '/login';
+                });
+        }
+    }, 2000);
+} else {
+    // Firebase not available, check server authentication
+    fetch('/api/user/info')
+        .then(response => response.json())
+        .then(data => {
+            if (data.authenticated) {
+                document.getElementById('user-name').textContent = data.username || "User";
+                document.getElementById('user-role').textContent = data.role || "User";
+            } else {
+                window.location.href = '/login';
             }
+        })
+        .catch(err => {
+            console.error('Error checking authentication:', err);
+            window.location.href = '/login';
+        });
+}
 
             // Charts
             const loanDistributionCtx = document.getElementById('loanDistributionChart').getContext('2d');
