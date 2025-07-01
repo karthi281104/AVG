@@ -36,7 +36,7 @@ class User(db.Model, UserMixin):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
-    firebase_uid = db.Column(db.String(128), unique=True, nullable=True)  # Add this line
+    firebase_uid = db.Column(db.String(128), unique=True, nullable=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -62,9 +62,20 @@ class Customer(db.Model):
     id_proof_url = db.Column(db.String(256))  # URL to stored ID proof document
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    profile_photo_url = db.Column(db.String(256))
+    kyc_verified = db.Column(db.Boolean, default=False)
+    verification_date = db.Column(db.DateTime)
+    verification_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    notes = db.Column(db.Text)
+    status = db.Column(db.String(20), default='active')  # active, inactive, blacklisted
 
     # Relationships
     loans = db.relationship('Loan', backref='customer', lazy=True)
+    __table_args__ = (
+        db.Index('idx_customer_phone', 'phone'),
+        db.Index('idx_customer_created_at', 'created_at'),
+    )
+
 
     def __repr__(self):
         return f'<Customer {self.name}>'
@@ -89,6 +100,17 @@ class Loan(db.Model):
     status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    approved_by = db.Column(db.Integer, db.ForeignKey('users.id'))
+    approval_date = db.Column(db.DateTime)
+    last_payment_date = db.Column(db.DateTime)
+    next_payment_date = db.Column(db.DateTime)
+    collateral_verification_status = db.Column(db.String(20), default='pending')  # pending, verified, rejected
+
+    __table_args__ = (
+        db.Index('idx_loan_customer', 'customer_id'),
+        db.Index('idx_loan_status', 'status'),
+        db.Index('idx_loan_due_date', 'due_date'),
+    )
 
     # Gold specific fields
     gold_weight = db.Column(db.Float)
@@ -138,6 +160,21 @@ class Document(db.Model):
     def __repr__(self):
         return f'<Document {self.document_type} for Loan {self.loan_id}>'
 
+
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    message = db.Column(db.String(500), nullable=False)
+    type = db.Column(db.String(50))  # payment_due, payment_received, loan_approved, etc.
+    related_id = db.Column(db.Integer)  # Loan ID, Payment ID, etc.
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.Index('idx_notification_user', 'user_id', 'is_read'),
+    )
 
 # Gold Price History
 class GoldPrice(db.Model):

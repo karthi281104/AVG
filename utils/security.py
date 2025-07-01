@@ -92,3 +92,4 @@ def validate_loan_application(form_data):
             errors['land_details'] = "Land details are required for land loans"
 
     return errors
+

@@ -1,65 +1,51 @@
 import os
-import secrets
-from datetime import timedelta
+
+# Define the base directory of the application
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
-    # Flask application settings
-    SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
-    DEBUG = False
-    TESTING = False
-
-    # Session settings
-    PERMANENT_SESSION_LIFETIME = timedelta(hours=12)
-
-    # File upload settings
-    UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload size
-    ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx'}
-
-    # Database settings (basic SQLite for development)
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///avg_loan.db'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'hard-to-guess-string'
+    SSL_DISABLE = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_RECORD_QUERIES = True
+    UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
 
-    # Security settings
-    SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    # Firebase configuration
+    FIREBASE_CONFIG = {
+        'apiKey': os.environ.get('FIREBASE_API_KEY'),
+        'authDomain': os.environ.get('FIREBASE_AUTH_DOMAIN'),
+        'projectId': os.environ.get('FIREBASE_PROJECT_ID'),
+        'storageBucket': os.environ.get('FIREBASE_STORAGE_BUCKET'),
+        'messagingSenderId': os.environ.get('FIREBASE_MESSAGING_SENDER_ID'),
+        'appId': os.environ.get('FIREBASE_APP_ID')
+    }
 
-    # Gold rates API (replace with an actual API key in production)
+    # Gold API configuration
     GOLD_API_KEY = os.environ.get('GOLD_API_KEY')
 
     @staticmethod
     def init_app(app):
-        # Create upload folder if it doesn't exist
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        pass
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
+                              'sqlite:///' + os.path.join(basedir, 'avg_loan.db')
 
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
-    WTF_CSRF_ENABLED = False
+    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
+                              'sqlite:///' + os.path.join(basedir, 'avg_loan_test.db')
 
 
 class ProductionConfig(Config):
-    # Production specific settings
-    SESSION_COOKIE_SECURE = True
-
-    # Use PostgreSQL in production
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://user:pass@localhost/avg_loan'
-
-    # Use environment variables for sensitive data
-    SECRET_KEY = os.environ.get('SECRET_KEY')
-
-    # Error logging and monitoring
-    LOG_LEVEL = 'INFO'
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+                              'sqlite:///' + os.path.join(basedir, 'avg_loan.db')
 
 
-# Dictionary to select environment config
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,

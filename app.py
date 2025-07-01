@@ -75,6 +75,46 @@ def create_app(config_name='default'):
     def home():
         return render_template('index.html')
 
+    # Enhanced file storage function
+    def save_file(file, folder, allowed_extensions=None):
+        """
+        Save uploaded file securely with validation
+
+        Args:
+            file: The file object from request.files
+            folder: Subfolder to save the file in
+            allowed_extensions: List of allowed file extensions
+
+        Returns:
+            URL path to the saved file
+        """
+        if allowed_extensions is None:
+            allowed_extensions = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx']
+
+        # Validate file extension
+        if '.' not in file.filename:
+            raise ValueError("File has no extension")
+
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        if ext not in allowed_extensions:
+            raise ValueError(f"File extension not allowed. Allowed types: {', '.join(allowed_extensions)}")
+
+        # Generate secure filename
+        filename = secure_filename(file.filename)
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        unique_filename = f"{timestamp}_{filename}"
+
+        # Create directory if it doesn't exist
+        upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], folder)
+        os.makedirs(upload_path, exist_ok=True)
+
+        # Save file
+        file_path = os.path.join(upload_path, unique_filename)
+        file.save(file_path)
+
+        # Return URL path
+        return f"/uploads/{folder}/{unique_filename}"
+    # Enhanced login security
     @app.route('/login', methods=['GET', 'POST'])
     def login():
         if current_user.is_authenticated:
@@ -87,17 +127,36 @@ def create_app(config_name='default'):
 
             user = User.query.filter_by(username=username).first()
 
-            if user and user.check_password(password):
-                login_user(user, remember=remember)
+            # Check if account is locked
+            if user and user.is_locked:
+                flash('Account is locked. Please contact administrator.', 'danger')
+                return render_template('login.html', firebase_enabled=FIREBASE_ENABLED)
 
-                # Update last login time
+            # Check credentials
+            if user and user.check_password(password):
+                # Reset login attempts on successful login
+                user.login_attempts = 0
                 user.last_login = datetime.utcnow()
                 db.session.commit()
 
+                login_user(user, remember=remember)
                 next_page = request.args.get('next')
                 return redirect(next_page or url_for('dashboard'))
             else:
-                flash('Invalid username or password', 'danger')
+                # Increment login attempts
+                if user:
+                    user.login_attempts += 1
+
+                    # Lock account after 5 failed attempts
+                    if user.login_attempts >= 5:
+                        user.is_locked = True
+                        flash('Too many failed login attempts. Account locked.', 'danger')
+                    else:
+                        flash('Invalid username or password', 'danger')
+
+                    db.session.commit()
+                else:
+                    flash('Invalid username or password', 'danger')
 
         return render_template('login.html', firebase_enabled=FIREBASE_ENABLED)
 
@@ -146,7 +205,7 @@ def create_app(config_name='default'):
             'role': user.role
         })
 
-    # Calculator routes
+    # Calculator routes (as provided earlier)
     @app.route('/calculators')
     def calculators():
         """Main calculators page"""
@@ -160,7 +219,6 @@ def create_app(config_name='default'):
     @app.route('/calculators/gold')
     def gold_calculator():
         """Gold Loan Calculator page"""
-        # Get current gold rate from helper function
         gold_rate = get_current_gold_rate()
         return render_template('gold_calculator.html', gold_rate=gold_rate)
 
@@ -189,40 +247,157 @@ def create_app(config_name='default'):
 
         return jsonify(result)
 
-    @app.route('/api/calculate/emi', methods=['POST'])
-    def calculate_emi_api():
-        """API endpoint for EMI calculation"""
-        data = request.json
+    # Customer Management Routes
+    @app.route('/customers')
+    @login_required
+    def list_customers():
+        """List all customers"""
+        customers = Customer.query.order_by(Customer.created_at.desc()).all()
+        return render_template('customers/index.html', customers=customers)
 
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
+    @app.route('/customers/new', methods=['GET', 'POST'])
+    @login_required
+    def new_customer():
+        """Create a new customer"""
+        if request.method == 'POST':
+            # Validate and create new customer
+            name = request.form.get('name')
+            phone = request.form.get('phone')
+            email = request.form.get('email')
+            address = request.form.get('address')
+            id_proof_type = request.form.get('id_proof_type')
+            id_proof_number = request.form.get('id_proof_number')
 
-        # Extract parameters
-        principal = data.get('principal', 0)
-        interest_rate = data.get('interest_rate', 0)
-        tenure_months = data.get('tenure_months', 0)
+            # Handle ID proof document upload
+            id_proof_file = request.files.get('id_proof_file')
+            id_proof_url = None
 
-        # Calculate EMI details
-        result = generate_amortization_schedule(principal, interest_rate, tenure_months)
+            if id_proof_file and id_proof_file.filename:
+                id_proof_url = save_file(id_proof_file, 'customer_id_proofs')
 
-        return jsonify(result)
+            customer = Customer(
+                name=name,
+                phone=phone,
+                email=email,
+                address=address,
+                id_proof_type=id_proof_type,
+                id_proof_number=id_proof_number,
+                id_proof_url=id_proof_url,
+            )
 
-    @app.route('/api/convert/gold', methods=['POST'])
-    def convert_gold_api():
-        """API endpoint for gold conversion"""
-        data = request.json
+            db.session.add(customer)
+            db.session.commit()
 
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
+            flash('Customer created successfully', 'success')
+            return redirect(url_for('list_customers'))
 
-        # Extract parameters
-        value = data.get('value', 0)
-        conversion_type = data.get('conversion_type', 'carat_to_percentage')
+        return render_template('customers/new.html')
 
-        # Convert gold measurement
-        result = convert_gold_measurement(value, conversion_type)
+    @app.route('/customers/<int:customer_id>')
+    @login_required
+    def view_customer(customer_id):
+        """View customer details"""
+        customer = Customer.query.get_or_404(customer_id)
+        loans = Loan.query.filter_by(customer_id=customer.id).all()
+        return render_template('customers/view.html', customer=customer, loans=loans)
 
-        return jsonify({'result': result})
+    # Loan Management Routes
+    @app.route('/loans/new/<int:customer_id>', methods=['GET', 'POST'])
+    @login_required
+    def new_loan(customer_id):
+        """Create a new loan for a customer"""
+        customer = Customer.query.get_or_404(customer_id)
+
+        if request.method == 'POST':
+            loan_type = request.form.get('loan_type')
+            loan_amount = float(request.form.get('loan_amount'))
+            interest_rate = float(request.form.get('interest_rate'))
+            term_months = int(request.form.get('term_months'))
+
+            # Calculate loan details
+            start_date = datetime.strptime(request.form.get('start_date'), '%Y-%m-%d').date()
+            due_date = start_date + timedelta(days=30 * term_months)
+
+            # Calculate EMI
+            emi_amount = calculate_emi(loan_amount, interest_rate, term_months)
+
+            # Create the loan
+            loan = Loan(
+                customer_id=customer.id,
+                loan_type=loan_type,
+                loan_amount=loan_amount,
+                interest_rate=interest_rate,
+                term_months=term_months,
+                start_date=start_date,
+                due_date=due_date,
+                emi_amount=emi_amount,
+                remaining_amount=loan_amount,
+                status='active'
+            )
+
+            # Add gold specific details if applicable
+            if loan_type == LoanType.GOLD.value:
+                loan.gold_weight = float(request.form.get('gold_weight'))
+                loan.gold_purity = float(request.form.get('gold_purity'))
+                loan.gold_items = request.form.get('gold_items')
+
+            # Add land specific details if applicable
+            if loan_type == LoanType.LAND.value:
+                loan.land_details = request.form.get('land_details')
+
+            db.session.add(loan)
+            db.session.commit()
+
+            # Upload documents
+            documents = request.files.getlist('documents')
+            for document in documents:
+                if document and document.filename:
+                    document_url = save_file(document, 'loan_documents')
+                    doc = Document(
+                        loan_id=loan.id,
+                        document_type=request.form.get('document_type'),
+                        document_url=document_url,
+                        filename=document.filename
+                    )
+                    db.session.add(doc)
+
+            db.session.commit()
+
+            flash('Loan created successfully', 'success')
+            return redirect(url_for('view_customer', customer_id=customer.id))
+
+        return render_template('loans/new.html', customer=customer)
+
+    # Document Management Routes
+    @app.route('/documents/upload/<int:loan_id>', methods=['POST'])
+    @login_required
+    def upload_document(loan_id):
+        """Upload document for a loan"""
+        loan = Loan.query.get_or_404(loan_id)
+
+        document_file = request.files.get('document')
+        if document_file and document_file.filename:
+            document_url = save_file(document_file, 'loan_documents')
+            doc = Document(
+                loan_id=loan.id,
+                document_type=request.form.get('document_type'),
+                document_url=document_url,
+                filename=document_file.filename
+            )
+            db.session.add(doc)
+            db.session.commit()
+
+            flash('Document uploaded successfully', 'success')
+
+        return redirect(url_for('view_loan', loan_id=loan.id))
+
+    @app.route('/documents/view/<int:document_id>')
+    @login_required
+    def view_document(document_id):
+        """View a document"""
+        document = Document.query.get_or_404(document_id)
+        return render_template('documents/view.html', document=document)
+
     @app.route('/api/auth/logout', methods=['POST'])
     def api_logout():
         """Clear server-side session when user logs out"""
