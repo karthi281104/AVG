@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, g
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import os
@@ -42,6 +43,7 @@ def create_app(config_name='default'):
 
     # Initialize extensions
     db.init_app(app)
+    csrf = CSRFProtect(app)
 
     # Initialize login manager
     login_manager = LoginManager()
@@ -295,9 +297,15 @@ def create_app(config_name='default'):
     @app.route('/customers')
     @login_required
     def list_customers():
-        """List all customers"""
-        customers = Customer.query.order_by(Customer.created_at.desc()).all()
-        return render_template('customers/index.html', customers=customers)
+        """List all customers with pagination"""
+        page = request.args.get('page', 1, type=int)
+        per_page = 20  # Number of customers per page
+        
+        customers = Customer.query.order_by(Customer.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        return render_template('customers/list.html', customers=customers)
 
     @app.route('/customers/new', methods=['GET', 'POST'])
     @login_required
@@ -374,6 +382,19 @@ def create_app(config_name='default'):
         return render_template('customers/view.html', customer=customer, loans=loans)
 
     # Loan Management Routes
+    @app.route('/loans')
+    @login_required
+    def list_loans():
+        """List all loans with pagination"""
+        page = request.args.get('page', 1, type=int)
+        per_page = 20  # Number of loans per page
+        
+        loans = Loan.query.order_by(Loan.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        return render_template('loans/list.html', loans=loans)
+
     @app.route('/loans/new/<int:customer_id>', methods=['GET', 'POST'])
     @login_required
     def new_loan(customer_id):
@@ -461,7 +482,7 @@ def create_app(config_name='default'):
 
             flash('Document uploaded successfully', 'success')
 
-        return redirect(url_for('view_loan', loan_id=loan.id))
+        return redirect(url_for('view_customer', customer_id=loan.customer_id))
 
     @app.route('/documents/view/<int:document_id>')
     @login_required
@@ -544,6 +565,21 @@ def create_app(config_name='default'):
                 })
 
         return jsonify({'authenticated': False}), 401
+
+    # Error handlers
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        return render_template('errors/500.html'), 500
+
+    @app.errorhandler(413)
+    def too_large(error):
+        flash('File too large. Maximum file size is 16MB.', 'error')
+        return redirect(request.url)
 
     return app
 
