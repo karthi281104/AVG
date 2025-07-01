@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Customer - AVG Loans</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <main class="ms-sm-auto px-md-4">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Add New Customer</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <a href="{{ url_for('list_customers') }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Customers
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Customer Form -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Customer Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" enctype="multipart/form-data" id="customerForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">Full Name *</label>
+                                            <input type="text" class="form-control" id="name" name="name" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="phone" class="form-label">Phone Number *</label>
+                                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                                   pattern="[0-9]{10}" required>
+                                            <div class="form-text">Enter 10-digit mobile number</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Email Address</label>
+                                            <input type="email" class="form-control" id="email" name="email">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_proof_type" class="form-label">ID Proof Type *</label>
+                                            <select class="form-select" id="id_proof_type" name="id_proof_type" required>
+                                                <option value="">Select ID Proof Type</option>
+                                                <option value="aadhar">Aadhar Card</option>
+                                                <option value="pan">PAN Card</option>
+                                                <option value="voter_id">Voter ID</option>
+                                                <option value="driving_license">Driving License</option>
+                                                <option value="passport">Passport</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_proof_number" class="form-label">ID Proof Number *</label>
+                                            <input type="text" class="form-control" id="id_proof_number" name="id_proof_number" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="id_proof_file" class="form-label">Upload ID Proof</label>
+                                            <input type="file" class="form-control" id="id_proof_file" name="id_proof_file" 
+                                                   accept=".jpg,.jpeg,.png,.pdf">
+                                            <div class="form-text">Accepted formats: JPG, PNG, PDF. Max size: 16MB</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="address" class="form-label">Address</label>
+                                    <textarea class="form-control" id="address" name="address" rows="3" 
+                                              placeholder="Enter complete address"></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="profile_photo" class="form-label">Profile Photo</label>
+                                            <input type="file" class="form-control" id="profile_photo" name="profile_photo" 
+                                                   accept=".jpg,.jpeg,.png">
+                                            <div class="form-text">Accepted formats: JPG, PNG. Max size: 16MB</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="notes" class="form-label">Notes</label>
+                                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                                      placeholder="Any additional notes about the customer"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="kyc_verified" name="kyc_verified">
+                                        <label class="form-check-label" for="kyc_verified">
+                                            Mark as KYC Verified
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('list_customers') }}" class="btn btn-secondary">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Save Customer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Phone number validation
+            const phoneInput = document.getElementById('phone');
+            phoneInput.addEventListener('input', function() {
+                // Remove non-numeric characters
+                this.value = this.value.replace(/\D/g, '');
+                
+                // Limit to 10 digits
+                if (this.value.length > 10) {
+                    this.value = this.value.substring(0, 10);
+                }
+            });
+
+            // ID proof number validation based on type
+            const idProofTypeSelect = document.getElementById('id_proof_type');
+            const idProofNumberInput = document.getElementById('id_proof_number');
+
+            idProofTypeSelect.addEventListener('change', function() {
+                const proofType = this.value;
+                idProofNumberInput.placeholder = '';
+                idProofNumberInput.pattern = '';
+
+                switch(proofType) {
+                    case 'aadhar':
+                        idProofNumberInput.placeholder = 'Enter 12-digit Aadhar number';
+                        idProofNumberInput.pattern = '[0-9]{12}';
+                        break;
+                    case 'pan':
+                        idProofNumberInput.placeholder = 'Enter PAN number (e.g., ABCDE1234F)';
+                        idProofNumberInput.pattern = '[A-Z]{5}[0-9]{4}[A-Z]{1}';
+                        break;
+                    case 'voter_id':
+                        idProofNumberInput.placeholder = 'Enter Voter ID number';
+                        break;
+                    case 'driving_license':
+                        idProofNumberInput.placeholder = 'Enter Driving License number';
+                        break;
+                    case 'passport':
+                        idProofNumberInput.placeholder = 'Enter Passport number';
+                        break;
+                }
+            });
+
+            // Form validation
+            document.getElementById('customerForm').addEventListener('submit', function(e) {
+                const name = document.getElementById('name').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+                const idProofType = document.getElementById('id_proof_type').value;
+                const idProofNumber = document.getElementById('id_proof_number').value.trim();
+
+                if (!name || !phone || !idProofType || !idProofNumber) {
+                    e.preventDefault();
+                    alert('Please fill in all required fields.');
+                    return false;
+                }
+
+                if (phone.length !== 10) {
+                    e.preventDefault();
+                    alert('Please enter a valid 10-digit phone number.');
+                    return false;
+                }
+
+                // Validate ID proof format
+                if (idProofType === 'aadhar' && idProofNumber.length !== 12) {
+                    e.preventDefault();
+                    alert('Aadhar number must be 12 digits.');
+                    return false;
+                }
+
+                if (idProofType === 'pan' && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(idProofNumber)) {
+                    e.preventDefault();
+                    alert('PAN number format is invalid. Example: ABCDE1234F');
+                    return false;
+                }
+            });
+
+            // File upload validation
+            const fileInputs = document.querySelectorAll('input[type="file"]');
+            fileInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file) {
+                        const maxSize = 16 * 1024 * 1024; // 16MB
+                        if (file.size > maxSize) {
+                            alert('File size must be less than 16MB.');
+                            this.value = '';
+                            return;
+                        }
+
+                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+                        if (!allowedTypes.includes(file.type)) {
+                            alert('Only JPG, PNG and PDF files are allowed.');
+                            this.value = '';
+                            return;
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

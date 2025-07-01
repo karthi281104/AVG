@@ -227,4 +227,29 @@
                 .catch(error => {
                     console.error('Error:', error);
                     // Fallback calculation if API fails
-                    fallbackCalculation(weight,
+                    fallbackCalculation(weight, purity, ratePerGram, loanToValue);
+                });
+            }
+
+            function fallbackCalculation(weight, purity, ratePerGram, loanToValue) {
+                // Calculate actual gold value
+                const goldValue = weight * (purity / 100) * ratePerGram;
+                
+                // Calculate loan amount based on LTV ratio
+                const maxLoanAmount = goldValue * (loanToValue / 100);
+
+                // Update results
+                document.getElementById('goldValue').textContent = '₹ ' + formatNumber(goldValue.toFixed(2));
+                document.getElementById('maxLoanAmount').textContent = '₹ ' + formatNumber(maxLoanAmount.toFixed(2));
+            }
+
+            function formatNumber(num) {
+                return new Intl.NumberFormat('en-IN').format(num);
+            }
+
+            // Calculate gold loan on page load with default values
+            calculateGoldLoan();
+        });
+    </script>
+</body>
+</html>

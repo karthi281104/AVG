@@ -246,6 +246,50 @@ def create_app(config_name='default'):
         result = calculate_gold_loan(weight, purity, rate_per_gram, loan_to_value)
 
         return jsonify(result)
+    
+    @app.route('/api/calculate/emi', methods=['POST'])
+    def calculate_emi_api():
+        """API endpoint for EMI calculation"""
+        data = request.json
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Extract parameters
+        principal = data.get('principal', 0)
+        interest_rate = data.get('interest_rate', 0)
+        tenure_months = data.get('tenure_months', 0)
+
+        if principal <= 0 or interest_rate < 0 or tenure_months <= 0:
+            return jsonify({'error': 'Invalid parameters'}), 400
+
+        # Generate amortization schedule
+        result = generate_amortization_schedule(principal, interest_rate, tenure_months)
+
+        return jsonify(result)
+    
+    @app.route('/api/calculate/gold_conversion', methods=['POST'])
+    def calculate_gold_conversion_api():
+        """API endpoint for gold carat/percentage conversion"""
+        data = request.json
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Extract parameters
+        value = data.get('value', 0)
+        conversion_type = data.get('conversion_type', 'carat_to_percentage')
+
+        if value <= 0:
+            return jsonify({'error': 'Invalid value'}), 400
+
+        if conversion_type not in ['carat_to_percentage', 'percentage_to_carat']:
+            return jsonify({'error': 'Invalid conversion type'}), 400
+
+        # Perform conversion
+        result = convert_gold_measurement(value, conversion_type)
+
+        return jsonify({'converted_value': result})
 
     # Customer Management Routes
     @app.route('/customers')
@@ -267,13 +311,33 @@ def create_app(config_name='default'):
             address = request.form.get('address')
             id_proof_type = request.form.get('id_proof_type')
             id_proof_number = request.form.get('id_proof_number')
+            notes = request.form.get('notes')
+            kyc_verified = 'kyc_verified' in request.form
+
+            # Validate required fields
+            if not all([name, phone, id_proof_type, id_proof_number]):
+                flash('Please fill in all required fields', 'error')
+                return render_template('customers/new.html')
 
             # Handle ID proof document upload
             id_proof_file = request.files.get('id_proof_file')
             id_proof_url = None
-
             if id_proof_file and id_proof_file.filename:
-                id_proof_url = save_file(id_proof_file, 'customer_id_proofs')
+                try:
+                    id_proof_url = save_file(id_proof_file, 'customer_id_proofs')
+                except ValueError as e:
+                    flash(f'ID proof upload error: {str(e)}', 'error')
+                    return render_template('customers/new.html')
+
+            # Handle profile photo upload
+            profile_photo_file = request.files.get('profile_photo')
+            profile_photo_url = None
+            if profile_photo_file and profile_photo_file.filename:
+                try:
+                    profile_photo_url = save_file(profile_photo_file, 'customer_photos')
+                except ValueError as e:
+                    flash(f'Profile photo upload error: {str(e)}', 'error')
+                    return render_template('customers/new.html')
 
             customer = Customer(
                 name=name,
@@ -283,13 +347,21 @@ def create_app(config_name='default'):
                 id_proof_type=id_proof_type,
                 id_proof_number=id_proof_number,
                 id_proof_url=id_proof_url,
+                profile_photo_url=profile_photo_url,
+                notes=notes,
+                kyc_verified=kyc_verified,
+                verification_date=datetime.utcnow() if kyc_verified else None,
+                verification_by=current_user.id if kyc_verified else None
             )
 
-            db.session.add(customer)
-            db.session.commit()
-
-            flash('Customer created successfully', 'success')
-            return redirect(url_for('list_customers'))
+            try:
+                db.session.add(customer)
+                db.session.commit()
+                flash('Customer created successfully', 'success')
+                return redirect(url_for('list_customers'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error creating customer: {str(e)}', 'error')
 
         return render_template('customers/new.html')
 

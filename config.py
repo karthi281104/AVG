@@ -10,6 +10,10 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_RECORD_QUERIES = True
     UPLOAD_FOLDER = os.path.join(basedir, 'uploads')
+    
+    # File upload configuration
+    ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'txt'}
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 
     # Firebase configuration
     FIREBASE_CONFIG = {
