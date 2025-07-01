@@ -845,10 +845,22 @@
         </div>
     </div>
 
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <!-- Firebase Scripts with version and cache-busting -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js?v=9.22.2"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js?v=9.22.2"></script>
+    <script>
+        // Force reload of firebase-config.js with timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        const configScript = document.createElement('script');
+        configScript.src = "{{ url_for('static', filename='js/firebase-config.js') }}?v=1.1.0&t=" + timestamp;
+        configScript.onload = function() {
+            console.log("Firebase config loaded on dashboard with timestamp:", timestamp);
+        };
+        configScript.onerror = function() {
+            console.error("Failed to load Firebase config on dashboard");
+        };
+        document.head.appendChild(configScript);
+    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

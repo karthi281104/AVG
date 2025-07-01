@@ -288,12 +288,27 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <!-- Firebase SDK with version -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js?v=9.22.2"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js?v=9.22.2"></script>
 
-    <!-- Custom Firebase Config -->
-    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+    <!-- Custom Firebase Config with cache-busting -->
+    <script>
+        // Force reload of firebase-config.js with timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        const configScript = document.createElement('script');
+        configScript.src = "{{ url_for('static', filename='js/firebase-config.js') }}?v=1.1.0&t=" + timestamp;
+        configScript.onload = function() {
+            console.log("Firebase config loaded with timestamp:", timestamp);
+        };
+        configScript.onerror = function() {
+            console.error("Failed to load Firebase config");
+        };
+        document.head.appendChild(configScript);
+    </script>
+    
+    <!-- Firebase Debug Tools -->
+    <script src="{{ url_for('static', filename='js/firebase-debug.js') }}?v=1.0.0"></script>
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -301,6 +316,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("🚀 Login page initialized");
+            console.log("Firebase config version:", window.FIREBASE_CONFIG_VERSION || "Unknown");
+            
             const firebaseLoginForm = document.getElementById('firebaseLoginForm');
             const standardLoginForm = document.getElementById('standardLoginForm');
             const toggleAuthMode = document.getElementById('toggle-auth-mode');
@@ -311,8 +329,24 @@
             const loadingOverlay = document.getElementById('loading-overlay');
             const loginError = document.getElementById('login-error');
 
+            // Wait for Firebase config to load, then check configuration
+            setTimeout(() => {
+                console.log("🔍 Checking Firebase configuration status...");
+                console.log("Firebase SDK loaded:", typeof firebase !== 'undefined');
+                console.log("Firebase not configured flag:", !!window.firebaseNotConfigured);
+                console.log("Firebase apps count:", typeof firebase !== 'undefined' ? firebase.apps.length : 0);
+                
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    console.log("Firebase Auth available:", true);
+                    console.log("Current user:", firebase.auth().currentUser ? firebase.auth().currentUser.email : 'None');
+                } else {
+                    console.log("Firebase Auth available:", false);
+                }
+            }, 500);
+
             // Check if Firebase is properly configured
             if (window.firebaseNotConfigured) {
+                console.warn("⚠️ Firebase not configured, showing standard login");
                 // If Firebase is not configured, show standard login by default
                 firebaseLoginForm.classList.remove('active');
                 standardLoginForm.classList.add('active');
@@ -325,12 +359,18 @@
                 loginError.classList.add('alert-warning');
                 loginError.style.display = 'block';
             } else {
+                console.log("✅ Firebase configured, setting up auth state listener");
                 // Check if user is already logged in with Firebase
                 // Modified to prevent redirect loop
                 firebase.auth().onAuthStateChanged((user) => {
                     if (user && !window.location.pathname.includes('login')) {
+                        console.log("🔄 User already authenticated, redirecting to dashboard:", user.email);
                         // Only redirect if we're not already on the login page
                         window.location.href = '/dashboard';
+                    } else if (user) {
+                        console.log("👤 User authenticated but on login page:", user.email);
+                    } else {
+                        console.log("👤 No user authenticated");
                     }
                 });
             }
@@ -353,8 +393,10 @@
             // Handle Firebase login
             firebaseLoginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                console.log("🔥 Firebase login form submitted");
 
                 if (window.firebaseNotConfigured) {
+                    console.error("❌ Firebase not configured, cannot proceed with login");
                     loginError.textContent = 'Firebase is not properly configured. Please use standard login.';
                     loginError.style.display = 'block';
                     return;
@@ -363,6 +405,7 @@
                 // Show loading overlay
                 loadingOverlay.style.display = 'flex';
                 loginError.style.display = 'none';
+                console.log("🔄 Loading overlay displayed");
 
                 const email = emailInput.value.trim();
                 const password = passwordInput.value;
@@ -370,17 +413,57 @@
                     firebase.auth.Auth.Persistence.LOCAL :
                     firebase.auth.Auth.Persistence.SESSION;
 
+                console.log("📧 Login attempt:", {
+                    email: email,
+                    passwordLength: password.length,
+                    persistence: persistence === firebase.auth.Auth.Persistence.LOCAL ? 'LOCAL' : 'SESSION',
+                    rememberMe: firebaseRemember.checked
+                });
+
+                // Add Firebase test function to verify SDK is working
+                console.log("🔍 Testing Firebase SDK before login...");
+                if (typeof firebase === 'undefined') {
+                    console.error("❌ Firebase SDK not loaded");
+                    loginError.textContent = 'Firebase SDK not loaded. Please refresh the page.';
+                    loginError.style.display = 'block';
+                    loadingOverlay.style.display = 'none';
+                    return;
+                }
+
+                if (!firebase.auth) {
+                    console.error("❌ Firebase Auth module not available");
+                    loginError.textContent = 'Firebase Auth module not available. Please refresh the page.';
+                    loginError.style.display = 'block';
+                    loadingOverlay.style.display = 'none';
+                    return;
+                }
+
+                console.log("✅ Firebase SDK and Auth module are available");
+
                 // First set persistence
+                console.log("🔧 Setting authentication persistence...");
                 firebase.auth().setPersistence(persistence)
                     .then(() => {
+                        console.log("✅ Persistence set successfully:", persistence === firebase.auth.Auth.Persistence.LOCAL ? 'LOCAL' : 'SESSION');
                         // Then sign in
+                        console.log("🔐 Attempting to sign in with email and password...");
                         return firebase.auth().signInWithEmailAndPassword(email, password);
                     })
                     .then((userCredential) => {
+                        console.log("✅ Firebase authentication successful:", {
+                            uid: userCredential.user.uid,
+                            email: userCredential.user.email,
+                            emailVerified: userCredential.user.emailVerified
+                        });
+                        
                         // Get the user's ID token
+                        console.log("🎫 Getting ID token...");
                         return userCredential.user.getIdToken();
                     })
                     .then((idToken) => {
+                        console.log("✅ ID token retrieved successfully");
+                        console.log("🌐 Sending token to backend for verification...");
+                        
                         // Send the token to your backend via HTTP
                         return fetch('/api/auth/verify', {
                             method: 'POST',
@@ -394,14 +477,26 @@
                             })
                         });
                     })
-                    .then((response) => response.json())
+                    .then((response) => {
+                        console.log("📡 Backend response received:", {
+                            status: response.status,
+                            statusText: response.statusText,
+                            ok: response.ok
+                        });
+                        return response.json();
+                    })
                     .then((data) => {
+                        console.log("📋 Backend verification result:", data);
+                        
                         if (data.status === 'success') {
-                            console.log("Authentication successful, redirecting to dashboard");
-                            // Redirect to dashboard
-                            window.location.href = '/dashboard';
+                            console.log("🎉 Authentication successful, redirecting to dashboard");
+                            // Add a small delay to ensure logging is visible
+                            setTimeout(() => {
+                                window.location.href = '/dashboard';
+                            }, 500);
                         } else {
                             // Handle backend error
+                            console.error("❌ Backend authentication failed:", data);
                             throw new Error('Backend authentication failed: ' + JSON.stringify(data));
                         }
                     })
@@ -409,35 +504,66 @@
                         // Hide loading overlay
                         loadingOverlay.style.display = 'none';
 
-                        // Show error message
-                        console.error("Login error:", error);
+                        // Show error message with detailed logging
+                        console.error("❌ Login error:", error);
+                        console.error("Error details:", {
+                            code: error.code,
+                            message: error.message,
+                            stack: error.stack
+                        });
+
+                        // Log to Firebase Debug if available
+                        if (window.FirebaseDebug) {
+                            window.FirebaseDebug.log("Login failed", 'error', {
+                                code: error.code,
+                                message: error.message,
+                                email: email
+                            });
+                        }
 
                         if (error.code) {
                             // Firebase Auth error
+                            console.log("🔍 Processing Firebase Auth error code:", error.code);
                             switch(error.code) {
                                 case 'auth/user-not-found':
                                     loginError.textContent = 'No account found with this email address.';
+                                    console.log("📝 Error: User not found");
                                     break;
                                 case 'auth/wrong-password':
                                     loginError.textContent = 'Invalid password. Please try again.';
+                                    console.log("📝 Error: Wrong password");
                                     break;
                                 case 'auth/invalid-email':
                                     loginError.textContent = 'Please enter a valid email address.';
+                                    console.log("📝 Error: Invalid email format");
                                     break;
                                 case 'auth/user-disabled':
                                     loginError.textContent = 'This account has been disabled.';
+                                    console.log("📝 Error: User account disabled");
                                     break;
                                 case 'auth/too-many-requests':
                                     loginError.textContent = 'Too many unsuccessful login attempts. Please try again later.';
+                                    console.log("📝 Error: Too many requests");
+                                    break;
+                                case 'auth/network-request-failed':
+                                    loginError.textContent = 'Network error. Please check your connection and try again.';
+                                    console.log("📝 Error: Network request failed");
+                                    break;
+                                case 'auth/invalid-credential':
+                                    loginError.textContent = 'Invalid credentials. Please check your email and password.';
+                                    console.log("📝 Error: Invalid credentials");
                                     break;
                                 default:
-                                    loginError.textContent = 'An error occurred. Please try again.';
+                                    loginError.textContent = `Authentication error: ${error.message}`;
+                                    console.log("📝 Error: Unknown Firebase error -", error.code);
                             }
                         } else {
-                            loginError.textContent = 'Authentication failed. Please try again.';
+                            loginError.textContent = 'Authentication failed. Please try again. Error: ' + error.message;
+                            console.log("📝 Error: Non-Firebase error");
                         }
 
                         loginError.style.display = 'block';
+                        console.log("🚨 Error message displayed to user");
                     });
             });
         });
