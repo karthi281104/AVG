@@ -146,6 +146,83 @@ def create_app(config_name='default'):
             'role': user.role
         })
 
+    # Calculator routes
+    @app.route('/calculators')
+    def calculators():
+        """Main calculators page"""
+        return render_template('calculators.html')
+
+    @app.route('/calculators/emi')
+    def emi_calculator():
+        """EMI Calculator page"""
+        return render_template('emi_calculator.html')
+
+    @app.route('/calculators/gold')
+    def gold_calculator():
+        """Gold Loan Calculator page"""
+        # Get current gold rate from helper function
+        gold_rate = get_current_gold_rate()
+        return render_template('gold_calculator.html', gold_rate=gold_rate)
+
+    @app.route('/calculators/gold_conversion')
+    def gold_conversion():
+        """Gold conversion calculator page"""
+        return render_template('gold_conversion.html')
+
+    # API endpoints for calculators
+    @app.route('/api/calculate/gold', methods=['POST'])
+    def calculate_gold_loan_api():
+        """API endpoint for gold loan calculation"""
+        data = request.json
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Extract parameters
+        weight = data.get('weight', 0)
+        purity = data.get('purity', 0)
+        rate_per_gram = data.get('rate_per_gram', 0)
+        loan_to_value = data.get('loan_to_value', 75)
+
+        # Calculate loan details
+        result = calculate_gold_loan(weight, purity, rate_per_gram, loan_to_value)
+
+        return jsonify(result)
+
+    @app.route('/api/calculate/emi', methods=['POST'])
+    def calculate_emi_api():
+        """API endpoint for EMI calculation"""
+        data = request.json
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Extract parameters
+        principal = data.get('principal', 0)
+        interest_rate = data.get('interest_rate', 0)
+        tenure_months = data.get('tenure_months', 0)
+
+        # Calculate EMI details
+        result = generate_amortization_schedule(principal, interest_rate, tenure_months)
+
+        return jsonify(result)
+
+    @app.route('/api/convert/gold', methods=['POST'])
+    def convert_gold_api():
+        """API endpoint for gold conversion"""
+        data = request.json
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Extract parameters
+        value = data.get('value', 0)
+        conversion_type = data.get('conversion_type', 'carat_to_percentage')
+
+        # Convert gold measurement
+        result = convert_gold_measurement(value, conversion_type)
+
+        return jsonify({'result': result})
     @app.route('/api/auth/logout', methods=['POST'])
     def api_logout():
         """Clear server-side session when user logs out"""
