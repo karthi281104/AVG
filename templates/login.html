@@ -259,6 +259,7 @@
 
             <!-- Standard Login Form -->
             <form id="standardLoginForm" class="auth-form" action="{{ url_for('login') }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="form-group">
                     <label for="username">Username</label>
                     <i class="fas fa-user"></i>

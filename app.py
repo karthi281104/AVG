@@ -232,6 +232,7 @@ def create_app(config_name='default'):
 
     # API endpoints for calculators
     @app.route('/api/calculate/gold', methods=['POST'])
+    @csrf.exempt
     def calculate_gold_loan_api():
         """API endpoint for gold loan calculation"""
         data = request.json
@@ -251,6 +252,7 @@ def create_app(config_name='default'):
         return jsonify(result)
     
     @app.route('/api/calculate/emi', methods=['POST'])
+    @csrf.exempt
     def calculate_emi_api():
         """API endpoint for EMI calculation"""
         data = request.json
@@ -272,6 +274,7 @@ def create_app(config_name='default'):
         return jsonify(result)
     
     @app.route('/api/calculate/gold_conversion', methods=['POST'])
+    @csrf.exempt
     def calculate_gold_conversion_api():
         """API endpoint for gold carat/percentage conversion"""
         data = request.json
