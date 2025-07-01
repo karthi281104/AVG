@@ -15,7 +15,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.role == 'admin':
             flash('Admin privileges required to access this page', 'danger')
-            return redirect(url_for('main.home'))
+            return redirect(url_for('home'))
         return f(*args, **kwargs)
 
     return decorated_function
@@ -32,22 +32,39 @@ def save_file(file, folder='uploads'):
     if not file or file.filename == '':
         return None
 
-    if file and allowed_file(file.filename):
-        # Create secure filename with unique identifier
-        filename = secure_filename(f"{uuid.uuid4().hex}_{file.filename}")
+    # Additional security checks
+    if file.content_length and file.content_length > current_app.config.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024):
+        raise ValueError("File size exceeds maximum allowed size")
 
-        # Create date-based subfolder for better organization
-        today = datetime.now().strftime('%Y%m%d')
-        subfolder = os.path.join(current_app.config['UPLOAD_FOLDER'], folder, today)
-        os.makedirs(subfolder, exist_ok=True)
+    # Check file extension
+    if not allowed_file(file.filename):
+        allowed_exts = ', '.join(current_app.config.get('ALLOWED_EXTENSIONS', {'jpg', 'jpeg', 'png', 'pdf'}))
+        raise ValueError(f"File type not allowed. Allowed types: {allowed_exts}")
 
-        filepath = os.path.join(subfolder, filename)
-        file.save(filepath)
+    # Read first few bytes to check for malicious content
+    file.seek(0)
+    file_header = file.read(512)
+    file.seek(0)  # Reset file pointer
+    
+    # Basic check for script content in uploads
+    dangerous_patterns = [b'<script', b'javascript:', b'<?php', b'<%', b'<html']
+    for pattern in dangerous_patterns:
+        if pattern in file_header.lower():
+            raise ValueError("File contains potentially dangerous content")
 
-        # Return relative path from UPLOAD_FOLDER
-        return os.path.join(folder, today, filename)
+    # Create secure filename with unique identifier
+    filename = secure_filename(f"{uuid.uuid4().hex}_{file.filename}")
 
-    return None
+    # Create date-based subfolder for better organization
+    today = datetime.now().strftime('%Y%m%d')
+    subfolder = os.path.join(current_app.config['UPLOAD_FOLDER'], folder, today)
+    os.makedirs(subfolder, exist_ok=True)
+
+    filepath = os.path.join(subfolder, filename)
+    file.save(filepath)
+
+    # Return relative path from UPLOAD_FOLDER
+    return os.path.join(folder, today, filename)
 
 
 def validate_loan_application(form_data):

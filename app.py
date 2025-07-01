@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, g
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import os
@@ -42,6 +43,7 @@ def create_app(config_name='default'):
 
     # Initialize extensions
     db.init_app(app)
+    csrf = CSRFProtect(app)
 
     # Initialize login manager
     login_manager = LoginManager()
@@ -246,14 +248,64 @@ def create_app(config_name='default'):
         result = calculate_gold_loan(weight, purity, rate_per_gram, loan_to_value)
 
         return jsonify(result)
+    
+    @app.route('/api/calculate/emi', methods=['POST'])
+    def calculate_emi_api():
+        """API endpoint for EMI calculation"""
+        data = request.json
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Extract parameters
+        principal = data.get('principal', 0)
+        interest_rate = data.get('interest_rate', 0)
+        tenure_months = data.get('tenure_months', 0)
+
+        if principal <= 0 or interest_rate < 0 or tenure_months <= 0:
+            return jsonify({'error': 'Invalid parameters'}), 400
+
+        # Generate amortization schedule
+        result = generate_amortization_schedule(principal, interest_rate, tenure_months)
+
+        return jsonify(result)
+    
+    @app.route('/api/calculate/gold_conversion', methods=['POST'])
+    def calculate_gold_conversion_api():
+        """API endpoint for gold carat/percentage conversion"""
+        data = request.json
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Extract parameters
+        value = data.get('value', 0)
+        conversion_type = data.get('conversion_type', 'carat_to_percentage')
+
+        if value <= 0:
+            return jsonify({'error': 'Invalid value'}), 400
+
+        if conversion_type not in ['carat_to_percentage', 'percentage_to_carat']:
+            return jsonify({'error': 'Invalid conversion type'}), 400
+
+        # Perform conversion
+        result = convert_gold_measurement(value, conversion_type)
+
+        return jsonify({'converted_value': result})
 
     # Customer Management Routes
     @app.route('/customers')
     @login_required
     def list_customers():
-        """List all customers"""
-        customers = Customer.query.order_by(Customer.created_at.desc()).all()
-        return render_template('customers/index.html', customers=customers)
+        """List all customers with pagination"""
+        page = request.args.get('page', 1, type=int)
+        per_page = 20  # Number of customers per page
+        
+        customers = Customer.query.order_by(Customer.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        return render_template('customers/list.html', customers=customers)
 
     @app.route('/customers/new', methods=['GET', 'POST'])
     @login_required
@@ -267,13 +319,33 @@ def create_app(config_name='default'):
             address = request.form.get('address')
             id_proof_type = request.form.get('id_proof_type')
             id_proof_number = request.form.get('id_proof_number')
+            notes = request.form.get('notes')
+            kyc_verified = 'kyc_verified' in request.form
+
+            # Validate required fields
+            if not all([name, phone, id_proof_type, id_proof_number]):
+                flash('Please fill in all required fields', 'error')
+                return render_template('customers/new.html')
 
             # Handle ID proof document upload
             id_proof_file = request.files.get('id_proof_file')
             id_proof_url = None
-
             if id_proof_file and id_proof_file.filename:
-                id_proof_url = save_file(id_proof_file, 'customer_id_proofs')
+                try:
+                    id_proof_url = save_file(id_proof_file, 'customer_id_proofs')
+                except ValueError as e:
+                    flash(f'ID proof upload error: {str(e)}', 'error')
+                    return render_template('customers/new.html')
+
+            # Handle profile photo upload
+            profile_photo_file = request.files.get('profile_photo')
+            profile_photo_url = None
+            if profile_photo_file and profile_photo_file.filename:
+                try:
+                    profile_photo_url = save_file(profile_photo_file, 'customer_photos')
+                except ValueError as e:
+                    flash(f'Profile photo upload error: {str(e)}', 'error')
+                    return render_template('customers/new.html')
 
             customer = Customer(
                 name=name,
@@ -283,13 +355,21 @@ def create_app(config_name='default'):
                 id_proof_type=id_proof_type,
                 id_proof_number=id_proof_number,
                 id_proof_url=id_proof_url,
+                profile_photo_url=profile_photo_url,
+                notes=notes,
+                kyc_verified=kyc_verified,
+                verification_date=datetime.utcnow() if kyc_verified else None,
+                verification_by=current_user.id if kyc_verified else None
             )
 
-            db.session.add(customer)
-            db.session.commit()
-
-            flash('Customer created successfully', 'success')
-            return redirect(url_for('list_customers'))
+            try:
+                db.session.add(customer)
+                db.session.commit()
+                flash('Customer created successfully', 'success')
+                return redirect(url_for('list_customers'))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error creating customer: {str(e)}', 'error')
 
         return render_template('customers/new.html')
 
@@ -302,6 +382,19 @@ def create_app(config_name='default'):
         return render_template('customers/view.html', customer=customer, loans=loans)
 
     # Loan Management Routes
+    @app.route('/loans')
+    @login_required
+    def list_loans():
+        """List all loans with pagination"""
+        page = request.args.get('page', 1, type=int)
+        per_page = 20  # Number of loans per page
+        
+        loans = Loan.query.order_by(Loan.created_at.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        return render_template('loans/list.html', loans=loans)
+
     @app.route('/loans/new/<int:customer_id>', methods=['GET', 'POST'])
     @login_required
     def new_loan(customer_id):
@@ -389,7 +482,7 @@ def create_app(config_name='default'):
 
             flash('Document uploaded successfully', 'success')
 
-        return redirect(url_for('view_loan', loan_id=loan.id))
+        return redirect(url_for('view_customer', customer_id=loan.customer_id))
 
     @app.route('/documents/view/<int:document_id>')
     @login_required
@@ -472,6 +565,21 @@ def create_app(config_name='default'):
                 })
 
         return jsonify({'authenticated': False}), 401
+
+    # Error handlers
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        return render_template('errors/500.html'), 500
+
+    @app.errorhandler(413)
+    def too_large(error):
+        flash('File too large. Maximum file size is 16MB.', 'error')
+        return redirect(request.url)
 
     return app
 
