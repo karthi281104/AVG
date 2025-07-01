@@ -164,6 +164,7 @@ def create_app(config_name='default'):
 
     # Firebase Auth API endpoint
     @app.route('/api/auth/verify', methods=['POST'])
+    @csrf.exempt
     def verify_auth():
         """Verify Firebase authentication and link to local user"""
         data = request.json
@@ -460,6 +461,108 @@ def create_app(config_name='default'):
             return redirect(url_for('view_customer', customer_id=customer.id))
 
         return render_template('loans/new.html', customer=customer)
+
+    # Payment Management Routes
+    @app.route('/payments')
+    @login_required
+    def list_payments():
+        """List all payments with pagination"""
+        page = request.args.get('page', 1, type=int)
+        per_page = 20  # Number of payments per page
+        
+        payments = Payment.query.order_by(Payment.payment_date.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        return render_template('payments/list.html', payments=payments)
+
+    @app.route('/payments/new/<int:loan_id>', methods=['GET', 'POST'])
+    @login_required
+    def new_payment(loan_id):
+        """Create a new payment for a loan"""
+        loan = Loan.query.get_or_404(loan_id)
+
+        if request.method == 'POST':
+            amount = float(request.form.get('amount'))
+            payment_method = request.form.get('payment_method')
+            reference_number = request.form.get('reference_number')
+            notes = request.form.get('notes')
+            payment_date = datetime.strptime(request.form.get('payment_date'), '%Y-%m-%d').date()
+
+            # Create the payment
+            payment = Payment(
+                loan_id=loan.id,
+                amount=amount,
+                payment_date=payment_date,
+                payment_method=payment_method,
+                reference_number=reference_number,
+                notes=notes,
+                created_by=current_user.id
+            )
+
+            try:
+                db.session.add(payment)
+                
+                # Update loan last payment date
+                loan.last_payment_date = payment_date
+                db.session.commit()
+
+                flash('Payment recorded successfully', 'success')
+                return redirect(url_for('view_loan', loan_id=loan.id))
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error recording payment: {str(e)}', 'error')
+
+        return render_template('payments/new.html', loan=loan)
+
+    @app.route('/payments/<int:payment_id>')
+    @login_required
+    def view_payment(payment_id):
+        """View payment details"""
+        payment = Payment.query.get_or_404(payment_id)
+        return render_template('payments/view.html', payment=payment)
+
+    @app.route('/loans/<int:loan_id>')
+    @login_required
+    def view_loan(loan_id):
+        """View loan details"""
+        loan = Loan.query.get_or_404(loan_id)
+        payments = Payment.query.filter_by(loan_id=loan_id).order_by(Payment.payment_date.desc()).all()
+        return render_template('loans/view.html', loan=loan, payments=payments)
+
+    # API Routes for payments
+    @app.route('/api/payments/<int:loan_id>', methods=['GET'])
+    @login_required
+    def api_loan_payments(loan_id):
+        """Get payments for a specific loan"""
+        payments = Payment.query.filter_by(loan_id=loan_id).order_by(Payment.payment_date.desc()).all()
+        return jsonify([{
+            'id': p.id,
+            'amount': p.amount,
+            'payment_date': p.payment_date.isoformat(),
+            'payment_method': p.payment_method,
+            'reference_number': p.reference_number,
+            'notes': p.notes
+        } for p in payments])
+
+    @app.route('/api/customers/search', methods=['GET'])
+    @login_required
+    def api_search_customers():
+        """Search customers for select2 dropdown"""
+        query = request.args.get('query', '')
+        if len(query) < 2:
+            return jsonify([])
+        
+        customers = Customer.query.filter(
+            Customer.name.contains(query) | 
+            Customer.phone.contains(query) |
+            Customer.email.contains(query)
+        ).limit(10).all()
+        
+        return jsonify([{
+            'id': c.id,
+            'text': f"{c.name} - {c.phone}"
+        } for c in customers])
 
     # Document Management Routes
     @app.route('/documents/upload/<int:loan_id>', methods=['POST'])
