@@ -164,20 +164,44 @@ def create_app(config_name='default'):
 
     # Firebase Auth API endpoint
     @app.route('/api/auth/verify', methods=['POST'])
+    @csrf.exempt  # Exempt from CSRF protection for API endpoint
     def verify_auth():
         """Verify Firebase authentication and link to local user"""
         data = request.json
+        app.logger.info(f"Authentication attempt for data: {data}")
 
         if not data or not data.get('uid') or not data.get('email'):
-            return jsonify({'status': 'error', 'message': 'Invalid data'}), 400
+            app.logger.warning(f"Invalid authentication data received: {data}")
+            return jsonify({'status': 'error', 'message': 'Invalid data - uid and email required'}), 400
+
+        # Verify Firebase token if provided
+        id_token = data.get('idToken')
+        if id_token:
+            try:
+                verified_token = verify_firebase_token(id_token)
+                if not verified_token:
+                    app.logger.warning(f"Firebase token verification failed for user: {data.get('email')}")
+                    return jsonify({'status': 'error', 'message': 'Invalid authentication token'}), 401
+                
+                # Ensure the token belongs to the claimed user
+                if verified_token.get('email') != data.get('email'):
+                    app.logger.warning(f"Token email mismatch: token={verified_token.get('email')}, claimed={data.get('email')}")
+                    return jsonify({'status': 'error', 'message': 'Token and email mismatch'}), 401
+                    
+                app.logger.info(f"Firebase token verified successfully for user: {data.get('email')}")
+            except Exception as e:
+                app.logger.error(f"Error during token verification: {e}")
+                return jsonify({'status': 'error', 'message': 'Token verification failed'}), 401
+        else:
+            app.logger.info(f"No Firebase token provided, proceeding with basic verification for: {data.get('email')}")
 
         # Check if user exists in our database
         user = User.query.filter_by(email=data['email']).first()
 
         if not user:
             try:
+                app.logger.info(f"Creating new user for email: {data['email']}")
                 # Create user in database if doesn't exist
-                # Remove firebase_uid since it's not in your model
                 user = User(
                     username=data['email'].split('@')[0],
                     email=data['email'],
@@ -190,17 +214,20 @@ def create_app(config_name='default'):
 
                 db.session.add(user)
                 db.session.commit()
-                print(f"Created new user: {user.username}")
+                app.logger.info(f"Successfully created new user: {user.username}")
             except Exception as e:
                 db.session.rollback()
-                print(f"Error creating user: {e}")
-                return jsonify({'status': 'error', 'message': str(e)}), 500
+                app.logger.error(f"Error creating user: {e}")
+                return jsonify({'status': 'error', 'message': f'Failed to create user: {str(e)}'}), 500
+        else:
+            app.logger.info(f"Existing user found: {user.username}")
 
         # Set session data for Flask authentication
         session['user_id'] = user.id
         session['firebase_uid'] = data.get('uid')
         session['firebase_token'] = data.get('idToken')
 
+        app.logger.info(f"Authentication successful for user: {user.username}")
         return jsonify({
             'status': 'success',
             'user_id': user.id,
