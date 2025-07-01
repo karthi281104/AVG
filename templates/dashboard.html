@@ -3,220 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - AGV Loan Management</title>
-    <!-- Bootstrap CSS -->
+    <title>Dashboard - AGV Loans</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
     <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 70px;
+            --header-height: 70px;
             --primary-color: #8a2be2;
-            --primary-light: #9d4edd;
-            --primary-dark: #6a0dad;
-            --secondary-color: #180a3d;
-            --accent-color: #ffb86c;
-            --light-bg: #f8f9fa;
-            --dark-text: #343a40;
-            --gray-light: #f0f0f0;
-            --gray-medium: #e0e0e0;
-            --gray-dark: #6c757d;
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --info: #17a2b8;
-            --white: #ffffff;
+            --secondary-color: #f8f9fa;
+            --sidebar-bg: #2c3e50;
+            --sidebar-active: #1a2634;
+            --card-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            --gradient-start: #8a2be2;
+            --gradient-middle: #9370db;
+            --gradient-end: #c71585;
         }
 
         body {
+            background: #f5f7fb;
             font-family: 'Poppins', sans-serif;
-            background-color: var(--light-bg);
-            color: var(--dark-text);
-            overflow-x: hidden;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
         }
 
-        /* Dashboard Layout */
-        .dashboard-container {
+        /* Admin Layout */
+        .admin-layout {
             display: flex;
             min-height: 100vh;
+            transition: all 0.3s ease;
         }
 
-        /* Sidebar */
+        /* Sidebar Styles */
         .sidebar {
-            width: 280px;
-            background: var(--white);
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            color: #fff;
+            height: 100vh;
             position: fixed;
-            height: 100%;
-            z-index: 1000;
-            transition: all 0.3s;
-            display: flex;
-            flex-direction: column;
+            left: 0;
+            top: 0;
+            z-index: 1030;
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .admin-layout.sidebar-collapsed .sidebar {
+            width: var(--sidebar-collapsed-width);
         }
 
         .sidebar-header {
-            padding: 25px 20px;
-            border-bottom: 1px solid var(--gray-medium);
+            padding: 1.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        .sidebar-brand {
-            font-family: 'Playfair Display', serif;
-            font-size: 26px;
-            font-weight: 700;
-            color: var(--primary-color);
+        .sidebar-header h2 {
             margin: 0;
-            display: flex;
-            align-items: center;
-        }
-
-        .sidebar-brand i {
-            margin-right: 12px;
-            font-size: 24px;
-        }
-
-        .sidebar-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 0;
-        }
-
-        .user-info {
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid var(--gray-medium);
-        }
-
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--white);
-            font-size: 20px;
-            margin-right: 15px;
-            box-shadow: 0 5px 10px rgba(138, 43, 226, 0.2);
-        }
-
-        .user-details h5 {
-            margin: 0;
-            font-size: 16px;
+            font-size: 1.3rem;
             font-weight: 600;
-            color: var(--dark-text);
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 1px;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
         }
 
-        .user-details p {
-            margin: 0;
-            font-size: 13px;
-            color: var(--gray-dark);
+        .admin-layout.sidebar-collapsed .sidebar-header h2 {
+            opacity: 0;
+            width: 0;
         }
 
-        .nav-menu {
+        .sidebar-nav {
+            padding: 1rem 0;
+            overflow-y: auto;
+            height: calc(100vh - var(--header-height));
+        }
+
+        .sidebar-nav ul {
             list-style: none;
             padding: 0;
             margin: 0;
         }
 
-        .nav-item {
-            margin-bottom: 5px;
+        .sidebar-nav li {
+            margin-bottom: 0.2rem;
         }
 
-        .nav-link {
+        .sidebar-nav .nav-link {
+            padding: 0.75rem 1.5rem;
+            color: rgba(255,255,255,0.8);
             display: flex;
             align-items: center;
-            padding: 12px 25px;
-            color: var(--dark-text);
             text-decoration: none;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             border-left: 4px solid transparent;
         }
 
-        .nav-link i {
-            margin-right: 15px;
-            font-size: 18px;
+        .sidebar-nav .nav-link:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .sidebar-nav .nav-link.active {
+            color: #fff;
+            background: var(--sidebar-active);
+            border-left-color: var(--gradient-middle);
+        }
+
+        .sidebar-nav .nav-icon {
+            font-size: 1.1rem;
+            margin-right: 1rem;
+            transition: margin 0.3s ease;
             width: 20px;
             text-align: center;
         }
 
-        .nav-link:hover {
-            background-color: rgba(138, 43, 226, 0.05);
-            color: var(--primary-color);
+        .admin-layout.sidebar-collapsed .sidebar-nav .nav-icon {
+            margin-right: 5rem;
         }
 
-        .nav-link.active {
-            background-color: rgba(138, 43, 226, 0.1);
-            color: var(--primary-color);
-            border-left: 4px solid var(--primary-color);
-            font-weight: 600;
+        .sidebar-nav .nav-text {
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
         }
 
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid var(--gray-medium);
+        .admin-layout.sidebar-collapsed .sidebar-nav .nav-text {
+            opacity: 0;
+            width: 0;
         }
 
-        .logout-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-            background-color: #fff1f0;
-            color: #e53935;
-            border: 1px solid #ffcdd2;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            width: 100%;
-        }
-
-        .logout-btn i {
-            margin-right: 10px;
-        }
-
-        .logout-btn:hover {
-            background-color: #ffebee;
-            box-shadow: 0 2px 8px rgba(229, 57, 53, 0.15);
-        }
-
-        /* Main content */
+        /* Main Content Styles */
         .main-content {
-            margin-left: 280px;
-            padding: 20px;
-            width: calc(100% - 280px);
-            transition: all 0.3s;
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            transition: margin-left 0.3s ease;
         }
 
-        .header {
-            background-color: var(--white);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
+        .admin-layout.sidebar-collapsed .main-content {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        /* Header Styles */
+        .admin-header {
+            height: var(--header-height);
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
         }
 
-        .page-title {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--dark-text);
-            font-family: 'Playfair Display', serif;
+        .toggle-sidebar {
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: var(--primary-color);
+            margin-right: 1rem;
+        }
+
+        .header-search {
+            flex: 1;
+            margin: 0 1rem;
+            position: relative;
+        }
+
+        .search-input {
+            padding: 0.5rem 1rem 0.5rem 2.5rem;
+            border-radius: 50px;
+            border: 1px solid #eaeaea;
+            width: 100%;
+            max-width: 400px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: #f5f7fb;
+        }
+
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(138,43,226,0.1);
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
         }
 
         .header-actions {
@@ -225,503 +207,639 @@
         }
 
         .date-display {
-            font-size: 14px;
-            color: var(--gray-dark);
-            display: flex;
-            align-items: center;
-            margin-right: 20px;
+            margin-right: 1.5rem;
+            font-size: 0.9rem;
+            color: #777;
         }
 
         .date-display i {
-            margin-right: 8px;
+            margin-right: 0.5rem;
+            color: var(--primary-color);
         }
 
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--dark-text);
-            font-size: 20px;
+        .notification-bell {
+            margin-right: 1.5rem;
+            position: relative;
             cursor: pointer;
-            margin-right: 15px;
+            color: #555;
         }
 
-        /* Stats Cards */
-        .stats-row {
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--gradient-end);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
             display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            flex: 1;
-            min-width: 200px;
-            background-color: var(--white);
-            border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            margin-right: 20px;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-            display: flex;
+            justify-content: center;
             align-items: center;
         }
 
-        .stat-card:last-child {
-            margin-right: 0;
+        .user-dropdown {
+            position: relative;
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        .user-menu {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
         }
 
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 10px;
+        .user-menu:hover {
+            background: #f5f7fb;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 20px;
-            font-size: 24px;
-            color: var(--white);
+            color: white;
+            font-weight: 600;
+            margin-right: 0.7rem;
         }
 
-        .icon-loans {
-            background: linear-gradient(135deg, #6a11cb, #2575fc);
+        .user-info {
+            line-height: 1.2;
         }
 
-        .icon-customers {
-            background: linear-gradient(135deg, #f83600, #f9d423);
+        .user-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
         }
 
-        .icon-amount {
-            background: linear-gradient(135deg, #11998e, #38ef7d);
+        .user-role {
+            font-size: 0.8rem;
+            color: #777;
         }
 
-        .icon-overdue {
-            background: linear-gradient(135deg, #eb3349, #f45c43);
+        .dropdown-toggle {
+            color: #555;
+            margin-left: 0.5rem;
         }
 
-        .stat-details h4 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--dark-text);
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: #fff;
+            min-width: 180px;
+            box-shadow: var(--card-shadow);
+            border-radius: 5px;
+            overflow: hidden;
+            right: 0;
+            top: 55px;
+            z-index: 1000;
         }
 
-        .stat-details p {
-            margin: 5px 0 0;
-            font-size: 14px;
-            color: var(--gray-dark);
-        }
-
-        /* Charts Section */
-        .charts-row {
+        .dropdown-content a {
+            color: #333;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
             display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
         }
 
-        .chart-container {
-            background-color: var(--white);
+        .dropdown-content a:hover {
+            background: #f5f7fb;
+        }
+
+        .dropdown-content a i {
+            margin-right: 0.7rem;
+            color: var(--primary-color);
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .dropdown-divider {
+            border-top: 1px solid #eee;
+            margin: 0.3rem 0;
+        }
+
+        .user-dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Dashboard Content */
+        .page-content {
+            padding: 2rem;
+        }
+
+        .page-title {
+            margin-bottom: 2rem;
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+            color: #333;
+        }
+
+        .page-title p {
+            color: #777;
+            margin: 0.5rem 0 0;
+        }
+
+        /* Cards and Widgets */
+        .stats-card {
+            background: #fff;
             border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            flex: 1;
-            min-width: 300px;
-            margin-right: 20px;
-            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
         }
 
-        .chart-container:last-child {
-            margin-right: 0;
+        .stats-card-icon {
+            font-size: 2rem;
+            color: #fff;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats-card-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-card-title {
+            color: #777;
+            font-size: 0.9rem;
+        }
+
+        .bg-gradient-1 {
+            background: linear-gradient(135deg, #8A2BE2, #9370DB);
+        }
+
+        .bg-gradient-2 {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .bg-gradient-3 {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+
+        .bg-gradient-4 {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .stats-icon-bg {
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 7rem;
+            opacity: 0.05;
+            color: #000;
+        }
+
+        /* Charts and Tables */
+        .chart-container {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            height: 100%;
+            position: relative;
         }
 
         .chart-title {
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 18px;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: var(--dark-text);
+            margin-bottom: 1.5rem;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* Recent Items Table */
+        .chart-actions a {
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        /* Tables */
         .table-container {
-            background-color: var(--white);
+            background: #fff;
             border-radius: 10px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-top: 2rem;
         }
 
         .table-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
         }
 
         .table-title {
-            margin: 0;
-            font-size: 18px;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: var(--dark-text);
+            color: #333;
+            margin: 0;
         }
 
         .view-all {
+            font-size: 0.9rem;
             color: var(--primary-color);
             text-decoration: none;
-            font-weight: 500;
-            font-size: 14px;
-            transition: all 0.3s;
+            display: flex;
+            align-items: center;
         }
 
-        .view-all:hover {
-            color: var(--primary-dark);
-            text-decoration: underline;
+        .view-all i {
+            margin-left: 0.5rem;
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+
+        .view-all:hover i {
+            transform: translateX(3px);
         }
 
         .table {
+            font-size: 0.9rem;
             margin-bottom: 0;
         }
 
-        .table th {
-            border-top: none;
+        .table thead th {
+            background: #f8f9fa;
             font-weight: 600;
-            color: var(--dark-text);
-            padding: 12px 8px;
-            font-size: 14px;
+            border: none;
+            color: #555;
+            padding: 1rem;
         }
 
-        .table td {
+        .table tbody td {
+            padding: 1rem;
             vertical-align: middle;
-            padding: 12px 8px;
-            font-size: 14px;
+            border-color: #f1f1f1;
         }
 
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
+        .table tbody tr:hover {
+            background: rgba(138, 43, 226, 0.02);
+        }
+
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: #555;
+            text-decoration: none;
+            margin-right: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(138, 43, 226, 0.1);
+            color: var(--primary-color);
+        }
+
+        /* Status badges */
+        .status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
             font-weight: 500;
         }
 
         .status-active {
-            background-color: rgba(40, 167, 69, 0.1);
-            color: #28a745;
-        }
-
-        .status-overdue {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
-        }
-
-        .status-paid {
-            background-color: rgba(23, 162, 184, 0.1);
-            color: #17a2b8;
+            background: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
         }
 
         .status-pending {
-            background-color: rgba(255, 193, 7, 0.1);
-            color: #ffc107;
+            background: rgba(241, 196, 15, 0.15);
+            color: #f1c40f;
         }
 
-        .action-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--gray-dark);
-            background-color: var(--gray-light);
-            border: none;
-            transition: all 0.3s;
-            margin-right: 5px;
-            font-size: 14px;
+        .status-overdue {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
         }
 
-        .action-btn:hover {
-            background-color: var(--primary-color);
-            color: var(--white);
+        .status-paid {
+            background: rgba(52, 152, 219, 0.15);
+            color: #3498db;
         }
 
-        /* Responsive */
-        @media (max-width: 991px) {
-            .sidebar {
-                transform: translateX(-100%);
-                box-shadow: none;
-            }
-
-            .main-content {
-                margin-left: 0;
-                width: 100%;
-            }
-
-            .menu-toggle {
-                display: block;
-            }
-
-            body.sidebar-open .sidebar {
-                transform: translateX(0);
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            }
-
-            .stat-card {
-                min-width: calc(50% - 20px);
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .stats-card {
+                margin-bottom: 1rem;
             }
 
             .chart-container {
-                min-width: 100%;
-                margin-right: 0;
+                margin-bottom: 1rem;
             }
         }
 
-        @media (max-width: 767px) {
-            .stat-card {
-                min-width: 100%;
-                margin-right: 0;
+        @media (max-width: 768px) {
+            .admin-layout .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                z-index: 1040;
             }
 
-            .date-display {
-                display: none;
+            .admin-layout.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+
+            .admin-header {
+                padding: 0 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
+    <div class="admin-layout">
+        <div class="sidebar">
             <div class="sidebar-header">
-                <h1 class="sidebar-brand">
-                    <i class="fas fa-university"></i>
-                    AGV Loans
-                </h1>
+                <h2>AGV Loans</h2>
             </div>
-
-            <div class="sidebar-content">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-details">
-                        <h5 id="user-name">Admin User</h5>
-                        <p id="user-role">Administrator</p>
-                    </div>
-                </div>
-
-                <ul class="nav-menu">
-                    <li class="nav-item">
+            <div class="sidebar-nav">
+                <ul>
+                    <li>
                         <a href="/dashboard" class="nav-link active">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Dashboard</span>
+                            <i class="fas fa-tachometer-alt nav-icon"></i>
+                            <span class="nav-text">Dashboard</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a href="/customers" class="nav-link">
-                            <i class="fas fa-users"></i>
-                            <span>Customers</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
+                    <li>
                         <a href="/loans" class="nav-link">
-                            <i class="fas fa-money-bill-wave"></i>
-                            <span>Loans</span>
+                            <i class="fas fa-coins nav-icon"></i>
+                            <span class="nav-text">Loans</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li>
+                        <a href="/customers" class="nav-link">
+                            <i class="fas fa-users nav-icon"></i>
+                            <span class="nav-text">Customers</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="/payments" class="nav-link">
-                            <i class="fas fa-hand-holding-usd"></i>
-                            <span>Payments</span>
+                            <i class="fas fa-money-bill-wave nav-icon"></i>
+                            <span class="nav-text">Payments</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li>
+                        <a href="/calculators" class="nav-link">
+                            <i class="fas fa-calculator nav-icon"></i>
+                            <span class="nav-text">Calculators</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="/reports" class="nav-link">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Reports</span>
+                            <i class="fas fa-chart-line nav-icon"></i>
+                            <span class="nav-text">Reports</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li>
                         <a href="/settings" class="nav-link">
-                            <i class="fas fa-cog"></i>
-                            <span>Settings</span>
+                            <i class="fas fa-cog nav-icon"></i>
+                            <span class="nav-text">Settings</span>
                         </a>
                     </li>
                 </ul>
             </div>
-
-            <div class="sidebar-footer">
-                <a href="#" class="logout-btn" id="logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main Content Area -->
+        </div>
         <div class="main-content">
-            <!-- Header -->
-            <header class="header">
-                <button class="menu-toggle" id="menu-toggle">
+            <div class="admin-header">
+                <div class="toggle-sidebar">
                     <i class="fas fa-bars"></i>
-                </button>
-                <h1 class="page-title">Dashboard</h1>
+                </div>
+                <div class="header-search">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search...">
+                </div>
                 <div class="header-actions">
                     <div class="date-display">
-                        <i class="far fa-calendar-alt"></i>
-                        <span id="current-date">June 29, 2025</span>
+                        <i class="far fa-calendar"></i>
+                        <span id="current-date">July 1, 2025</span>
                     </div>
-                </div>
-            </header>
-
-            <!-- Stats Cards -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon icon-loans">
-                        <i class="fas fa-file-invoice-dollar"></i>
+                    <div class="notification-bell">
+                        <i class="far fa-bell"></i>
+                        <span class="notification-badge">3</span>
                     </div>
-                    <div class="stat-details">
-                        <h4>{{ stats.total_loans }}</h4>
-                        <p>Total Loans</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon icon-customers">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-details">
-                        <h4>{{ stats.total_customers }}</h4>
-                        <p>Total Customers</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon icon-amount">
-                        <i class="fas fa-rupee-sign"></i>
-                    </div>
-                    <div class="stat-details">
-                        <h4>{{ stats.total_loan_amount }}</h4>
-                        <p>Total Loan Amount</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon icon-overdue">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                    <div class="stat-details">
-                        <h4>{{ stats.overdue_loans }}</h4>
-                        <p>Overdue Loans</p>
+                    <div class="user-dropdown">
+                        <div class="user-menu">
+                            <div class="user-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <div class="user-name" id="user-name">Admin</div>
+                                <div class="user-role" id="user-role">Administrator</div>
+                            </div>
+                            <i class="fas fa-chevron-down dropdown-toggle"></i>
+                        </div>
+                        <div class="dropdown-content">
+                            <a href="/profile"><i class="fas fa-user-circle"></i> My Profile</a>
+                            <a href="/settings"><i class="fas fa-cog"></i> Settings</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Charts -->
-            <div class="charts-row">
-                <div class="chart-container">
-                    <h2 class="chart-title">Loan Distribution</h2>
-                    <canvas id="loanDistributionChart"></canvas>
+            <div class="page-content">
+                <div class="page-title">
+                    <h1>Dashboard</h1>
+                    <p>Welcome back! Here's what's happening with your loans today.</p>
                 </div>
 
-                <div class="chart-container">
-                    <h2 class="chart-title">Monthly Performance</h2>
-                    <canvas id="monthlyPerformanceChart"></canvas>
+                <!-- Stats Cards Row -->
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="stats-card">
+                            <div class="stats-card-icon bg-gradient-1">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <div class="stats-card-value">{{ stats.total_loans }}</div>
+                            <div class="stats-card-title">Total Loans</div>
+                            <i class="fas fa-file-invoice-dollar stats-icon-bg"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="stats-card">
+                            <div class="stats-card-icon bg-gradient-2">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stats-card-value">{{ stats.total_customers }}</div>
+                            <div class="stats-card-title">Total Customers</div>
+                            <i class="fas fa-users stats-icon-bg"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="stats-card">
+                            <div class="stats-card-icon bg-gradient-3">
+                                <i class="fas fa-rupee-sign"></i>
+                            </div>
+                            <div class="stats-card-value">{{ stats.total_loan_amount }}</div>
+                            <div class="stats-card-title">Total Loan Amount</div>
+                            <i class="fas fa-rupee-sign stats-icon-bg"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="stats-card">
+                            <div class="stats-card-icon bg-gradient-4">
+                                <i class="fas fa-exclamation-circle"></i>
+                            </div>
+                            <div class="stats-card-value">{{ stats.overdue_loans }}</div>
+                            <div class="stats-card-title">Overdue Loans</div>
+                            <i class="fas fa-exclamation-circle stats-icon-bg"></i>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Recent Loans Table -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h2 class="table-title">Recent Loans</h2>
-                    <a href="/loans" class="view-all">View All <i class="fas fa-chevron-right"></i></a>
+                <!-- Charts Row -->
+                <div class="row mb-4">
+                    <div class="col-lg-8">
+                        <div class="chart-container">
+                            <div class="chart-title">
+                                <span>Loan Disbursements & Collections</span>
+                                <div class="chart-actions">
+                                    <a href="/reports/disbursements">View Full Report</a>
+                                </div>
+                            </div>
+                            <canvas id="loansChart" height="300"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="chart-container">
+                            <div class="chart-title">
+                                <span>Loan Distribution</span>
+                                <div class="chart-actions">
+                                    <a href="/reports/distribution">Details</a>
+                                </div>
+                            </div>
+                            <canvas id="loanDistributionChart" height="300"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Reference</th>
-                                <th>Customer</th>
-                                <th>Amount</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for loan in recent_loans %}
-                            <tr>
-                                <td>{{ loan.loan_reference }}</td>
-                                <td>{{ loan.customer.name }}</td>
-                                <td>{{ loan.loan_amount|format_currency }}</td>
-                                <td>{{ loan.created_at.strftime('%d %b, %Y') }}</td>
-                                <td>
-                                    {% if loan.status == 'active' %}
-                                        <span class="status-badge status-active">Active</span>
-                                    {% elif loan.status == 'overdue' %}
-                                        <span class="status-badge status-overdue">Overdue</span>
-                                    {% elif loan.status == 'paid' %}
-                                        <span class="status-badge status-paid">Paid</span>
-                                    {% elif loan.status == 'pending' %}
-                                        <span class="status-badge status-pending">Pending</span>
-                                    {% else %}
-                                        <span class="status-badge">{{ loan.status }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <a href="/loans/{{ loan.id }}" class="action-btn" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="/loans/{{ loan.id }}/edit" class="action-btn" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
-            <!-- Recent Customers Table -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h2 class="table-title">Recent Customers</h2>
-                    <a href="/customers" class="view-all">View All <i class="fas fa-chevron-right"></i></a>
+                <!-- Tables -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2 class="table-title">Recent Loans</h2>
+                        <a href="/loans" class="view-all">View All <i class="fas fa-chevron-right"></i></a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>Customer</th>
+                                    <th>Loan Type</th>
+                                    <th>Amount</th>
+                                    <th>Start Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for loan in recent_loans %}
+                                <tr>
+                                    <td>{{ loan.loan_reference }}</td>
+                                    <td>{{ loan.customer.name }}</td>
+                                    <td>{{ loan.loan_type|title }}</td>
+                                    <td>₹{{ '{:,.2f}'.format(loan.loan_amount) }}</td>
+                                    <td>{{ loan.start_date.strftime('%d %b, %Y') }}</td>
+                                    <td>
+                                        {% if loan.status == 'active' %}
+                                        <span class="status status-active">Active</span>
+                                        {% elif loan.status == 'pending' %}
+                                        <span class="status status-pending">Pending</span>
+                                        {% elif loan.status == 'overdue' %}
+                                        <span class="status status-overdue">Overdue</span>
+                                        {% elif loan.status == 'paid' %}
+                                        <span class="status status-paid">Paid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="/loans/{{ loan.id }}" class="action-btn" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="/loans/{{ loan.id }}/edit" class="action-btn" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Phone</th>
-                                <th>Email</th>
-                                <th>Joined Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for customer in recent_customers %}
-                            <tr>
-                                <td>{{ customer.name }}</td>
-                                <td>{{ customer.phone }}</td>
-                                <td>{{ customer.email or 'N/A' }}</td>
-                                <td>{{ customer.created_at.strftime('%d %b, %Y') }}</td>
-                                <td>
-                                    <a href="/customers/{{ customer.id }}" class="action-btn" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="/customers/{{ customer.id }}/edit" class="action-btn" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2 class="table-title">Recent Customers</h2>
+                        <a href="/customers" class="view-all">View All <i class="fas fa-chevron-right"></i></a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                    <th>Joined Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for customer in recent_customers %}
+                                <tr>
+                                    <td>{{ customer.name }}</td>
+                                    <td>{{ customer.phone }}</td>
+                                    <td>{{ customer.email or 'N/A' }}</td>
+                                    <td>{{ customer.created_at.strftime('%d %b, %Y') }}</td>
+                                    <td>
+                                        <a href="/customers/{{ customer.id }}" class="action-btn" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="/customers/{{ customer.id }}/edit" class="action-btn" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -775,77 +893,59 @@
             });
 
             // Check authentication
-// Replace the authentication check in dashboard.html
-// Check authentication
-if (typeof firebase !== 'undefined' && !window.firebaseNotConfigured) {
-    let authCheckComplete = false;
+            let authCheckComplete = false;
 
-    firebase.auth().onAuthStateChanged(user => {
-        authCheckComplete = true;
-        if (user) {
-            // Update user display name
-            document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
-        } else {
-            // Before redirecting to login, check if the user is authenticated via session
-            fetch('/api/user/info')
-                .then(response => {
-                    if (!response.ok) {
-                        // Not authenticated at all, redirect to login
-                        window.location.href = '/login';
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (!data.authenticated) {
-                        window.location.href = '/login';
+            // First check if Firebase is configured
+            if (typeof firebase !== 'undefined' && !window.firebaseNotConfigured) {
+                firebase.auth().onAuthStateChanged(user => {
+                    authCheckComplete = true;
+                    if (user) {
+                        // User is signed in with Firebase
+                        document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
+                        console.log("Firebase authenticated as:", user.email);
                     } else {
-                        // Update user info from Flask session
-                        document.getElementById('user-name').textContent = data.username || "User";
-                        document.getElementById('user-role').textContent = data.role || "User";
+                        console.log("No Firebase auth, checking session auth");
+                        // Check server-side authentication
+                        checkServerAuth();
                     }
-                })
-                .catch(err => {
-                    console.error('Error checking authentication:', err);
                 });
-        }
-    });
 
-    // Fallback if Firebase auth doesn't respond
-    setTimeout(() => {
-        if (!authCheckComplete) {
-            fetch('/api/user/info')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.authenticated) {
-                        document.getElementById('user-name').textContent = data.username || "User";
-                        document.getElementById('user-role').textContent = data.role || "User";
-                    } else {
-                        window.location.href = '/login';
+                // Fallback if Firebase auth doesn't respond within 2 seconds
+                setTimeout(() => {
+                    if (!authCheckComplete) {
+                        console.log("Firebase auth timeout, checking server auth");
+                        checkServerAuth();
                     }
-                })
-                .catch(err => {
-                    console.error('Error checking authentication:', err);
-                    window.location.href = '/login';
-                });
-        }
-    }, 2000);
-} else {
-    // Firebase not available, check server authentication
-    fetch('/api/user/info')
-        .then(response => response.json())
-        .then(data => {
-            if (data.authenticated) {
-                document.getElementById('user-name').textContent = data.username || "User";
-                document.getElementById('user-role').textContent = data.role || "User";
+                }, 2000);
             } else {
-                window.location.href = '/login';
+                // Firebase not configured, check server-side authentication
+                console.log("Firebase not configured, checking server auth");
+                checkServerAuth();
             }
-        })
-        .catch(err => {
-            console.error('Error checking authentication:', err);
-            window.location.href = '/login';
-        });
-}
+
+            function checkServerAuth() {
+                fetch('/api/user/info')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Not authenticated');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.authenticated) {
+                            console.log("Server authenticated as:", data.username);
+                            document.getElementById('user-name').textContent = data.username;
+                            document.getElementById('user-role').textContent = data.role;
+                        } else {
+                            console.log("Not authenticated, redirecting to login");
+                            window.location.href = '/login';
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Authentication error:', err);
+                        window.location.href = '/login';
+                    });
+            }
 
             // Charts
             const loanDistributionCtx = document.getElementById('loanDistributionChart').getContext('2d');
@@ -882,59 +982,77 @@ if (typeof firebase !== 'undefined' && !window.firebaseNotConfigured) {
                 }
             });
 
-            const monthlyPerformanceCtx = document.getElementById('monthlyPerformanceChart').getContext('2d');
-            const monthlyPerformanceChart = new Chart(monthlyPerformanceCtx, {
+            const loansCtx = document.getElementById('loansChart').getContext('2d');
+            const loansChart = new Chart(loansCtx, {
                 type: 'line',
                 data: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                     datasets: [{
-                        label: 'New Loans',
-                        data: [12, 19, 15, 17, 22, 25],
-                        borderColor: '#6a11cb',
+                        label: 'Disbursements',
+                        data: [12, 19, 17, 15, 22, 27],
+                        borderColor: '#8A2BE2',
+                        backgroundColor: 'rgba(138, 43, 226, 0.1)',
                         tension: 0.4,
-                        fill: false
+                        fill: true
                     }, {
-                        label: 'Loan Payments',
-                        data: [8, 15, 12, 16, 19, 21],
+                        label: 'Collections',
+                        data: [8, 12, 15, 17, 19, 25],
                         borderColor: '#38ef7d',
+                        backgroundColor: 'rgba(56, 239, 125, 0.1)',
                         tension: 0.4,
-                        fill: false
+                        fill: true
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: 'top',
                             labels: {
                                 font: {
                                     family: "'Poppins', sans-serif",
                                     size: 12
                                 },
+                                usePointStyle: true,
                                 padding: 20
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                font: {
-                                    family: "'Poppins', sans-serif"
-                                }
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                font: {
-                                    family: "'Poppins', sans-serif"
-                                }
                             }
                         }
                     }
                 }
             });
+
+            // Toggle sidebar in admin layout
+            const toggleSidebarButton = document.querySelector('.toggle-sidebar');
+            toggleSidebarButton.addEventListener('click', function() {
+                document.querySelector('.admin-layout').classList.toggle('sidebar-collapsed');
+            });
+
+            // Adjust sidebar based on screen size
+            function adjustSidebar() {
+                if (window.innerWidth < 992) {
+                    document.querySelector('.admin-layout').classList.add('sidebar-collapsed');
+                } else {
+                    document.querySelector('.admin-layout').classList.remove('sidebar-collapsed');
+                }
+            }
+
+            // Call on load and resize
+            adjustSidebar();
+            window.addEventListener('resize', adjustSidebar);
         });
     </script>
 </body>

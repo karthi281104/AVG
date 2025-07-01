@@ -19,7 +19,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding-top: 0;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
             position: relative;
             overflow: hidden;
         }
@@ -30,61 +31,42 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><path fill="%23ffffff" fill-opacity="0.05" d="M20 10a10 10 0 0 1 10 10a10 10 0 0 1-10 10a10 10 0 0 1-10-10a10 10 0 0 1 10-10M20 0A20 20 0 0 1 40 20A20 20 0 0 1 20 40A20 20 0 0 1 0 20A20 20 0 0 1 20 0"/></svg>');
-            z-index: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            z-index: -1;
         }
 
         .login-container {
-            max-width: 450px;
-            width: 100%;
-            background: white;
+            background-color: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            padding: 0;
+            box-shadow: 0 15px 35px rgba(50, 50, 93, 0.2), 0 5px 15px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
             position: relative;
-            z-index: 1;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
         }
 
         .login-header {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            padding: 35px;
             text-align: center;
-            color: white;
+            margin-bottom: 30px;
             position: relative;
         }
 
-        .login-header::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 10px;
-            background: linear-gradient(90deg,
-                rgba(255,255,255,0.3) 0%,
-                rgba(255,255,255,0.6) 25%,
-                rgba(255,255,255,0.3) 50%,
-                rgba(255,255,255,0.6) 75%,
-                rgba(255,255,255,0.3) 100%);
-            z-index: 2;
-        }
-
         .login-header h1 {
-            margin: 0;
+            font-family: 'Playfair Display', serif;
             font-weight: 700;
-            font-size: 2.2rem;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 5px;
         }
 
         .login-header p {
-            margin: 10px 0 0;
-            opacity: 0.9;
-            font-size: 1rem;
+            color: #666;
+            font-size: 0.9rem;
         }
 
         .login-form {
-            padding: 35px;
+            position: relative;
         }
 
         .form-group {
@@ -93,18 +75,19 @@
         }
 
         .form-group label {
-            font-weight: 500;
-            margin-bottom: 10px;
             display: block;
+            margin-bottom: 8px;
             color: #333;
+            font-weight: 500;
+            font-size: 0.9rem;
         }
 
         .form-control {
             height: 55px;
-            background-color: #f9f9f9;
-            border: 1px solid #eaeaea;
+            padding-left: 45px;
             border-radius: 8px;
-            padding: 10px 15px 10px 45px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
             font-size: 1rem;
             transition: all 0.3s ease;
         }
@@ -343,10 +326,11 @@
                 loginError.style.display = 'block';
             } else {
                 // Check if user is already logged in with Firebase
+                // Modified to prevent redirect loop
                 firebase.auth().onAuthStateChanged((user) => {
-                    if (user && !window.location.href.includes('login')) {
-                    // Only redirect if we're not already on the login page
-                    window.location.href = '/dashboard';
+                    if (user && !window.location.pathname.includes('login')) {
+                        // Only redirect if we're not already on the login page
+                        window.location.href = '/dashboard';
                     }
                 });
             }
@@ -413,11 +397,12 @@
                     .then((response) => response.json())
                     .then((data) => {
                         if (data.status === 'success') {
+                            console.log("Authentication successful, redirecting to dashboard");
                             // Redirect to dashboard
                             window.location.href = '/dashboard';
                         } else {
                             // Handle backend error
-                            throw new Error('Backend authentication failed');
+                            throw new Error('Backend authentication failed: ' + JSON.stringify(data));
                         }
                     })
                     .catch((error) => {

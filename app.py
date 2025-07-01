@@ -114,24 +114,31 @@ def create_app(config_name='default'):
         user = User.query.filter_by(email=data['email']).first()
 
         if not user:
-            # Create user in database if doesn't exist
-            user = User(
-                username=data['email'].split('@')[0],
-                email=data['email'],
-                firebase_uid=data.get('uid'),
-                role='admin'  # Default role for new users
-            )
-            # For non-Firebase authentication, set a default password
-            if hasattr(user, 'set_password'):
-                user.set_password('default_password')  # Should be changed
+            try:
+                # Create user in database if doesn't exist
+                # Remove firebase_uid since it's not in your model
+                user = User(
+                    username=data['email'].split('@')[0],
+                    email=data['email'],
+                    role='admin'  # Default role for new users
+                )
 
-            db.session.add(user)
-            db.session.commit()
+                # Set password for Flask login
+                if hasattr(user, 'set_password'):
+                    user.set_password('default_password')  # Should be changed
+
+                db.session.add(user)
+                db.session.commit()
+                print(f"Created new user: {user.username}")
+            except Exception as e:
+                db.session.rollback()
+                print(f"Error creating user: {e}")
+                return jsonify({'status': 'error', 'message': str(e)}), 500
 
         # Set session data for Flask authentication
         session['user_id'] = user.id
         session['firebase_uid'] = data.get('uid')
-        session['firebase_token'] = request.json.get('idToken')  # Store the token for future API calls
+        session['firebase_token'] = data.get('idToken')
 
         return jsonify({
             'status': 'success',
