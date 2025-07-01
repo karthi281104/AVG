@@ -164,23 +164,75 @@ def create_app(config_name='default'):
 
     # Firebase Auth API endpoint
     @app.route('/api/auth/verify', methods=['POST'])
+    @csrf.exempt  # Exempt from CSRF protection for API endpoint
     def verify_auth():
         """Verify Firebase authentication and link to local user"""
+        # Log the incoming request for debugging
+        print(f"[AUTH DEBUG] Received request to /api/auth/verify")
+        print(f"[AUTH DEBUG] Content-Type: {request.content_type}")
+        print(f"[AUTH DEBUG] Method: {request.method}")
+        
+        # Get data from request
         data = request.json
+        print(f"[AUTH DEBUG] Request data: {data}")
 
-        if not data or not data.get('uid') or not data.get('email'):
-            return jsonify({'status': 'error', 'message': 'Invalid data'}), 400
+        # Improved validation
+        if not data:
+            print("[AUTH DEBUG] No data provided in request")
+            return jsonify({'status': 'error', 'message': 'No data provided'}), 400
+
+        # Check for required fields
+        required_fields = ['uid', 'email', 'idToken']
+        missing_fields = [field for field in required_fields if not data.get(field)]
+        
+        if missing_fields:
+            print(f"[AUTH DEBUG] Missing required fields: {missing_fields}")
+            return jsonify({
+                'status': 'error', 
+                'message': f'Missing required fields: {", ".join(missing_fields)}'
+            }), 400
+
+        uid = data.get('uid')
+        email = data.get('email')
+        id_token = data.get('idToken')
+        
+        print(f"[AUTH DEBUG] Processing auth for user: {email} (UID: {uid})")
+
+        # Verify the Firebase ID token if available
+        if id_token and FIREBASE_ENABLED:
+            try:
+                print(f"[AUTH DEBUG] Verifying Firebase token...")
+                token_info = verify_firebase_token(id_token)
+                if not token_info:
+                    print(f"[AUTH DEBUG] Token verification failed")
+                    return jsonify({'status': 'error', 'message': 'Invalid Firebase token'}), 401
+                print(f"[AUTH DEBUG] Token verified successfully for UID: {token_info.get('uid')}")
+            except Exception as e:
+                print(f"[AUTH DEBUG] Token verification error: {e}")
+                return jsonify({'status': 'error', 'message': 'Token verification failed'}), 401
+        else:
+            print(f"[AUTH DEBUG] Skipping token verification (Firebase enabled: {FIREBASE_ENABLED})")
 
         # Check if user exists in our database
-        user = User.query.filter_by(email=data['email']).first()
+        user = User.query.filter_by(email=email).first()
+        print(f"[AUTH DEBUG] Existing user found: {user is not None}")
 
         if not user:
             try:
+                print(f"[AUTH DEBUG] Creating new user for email: {email}")
                 # Create user in database if doesn't exist
-                # Remove firebase_uid since it's not in your model
+                username = email.split('@')[0]
+                
+                # Ensure username is unique
+                base_username = username
+                counter = 1
+                while User.query.filter_by(username=username).first():
+                    username = f"{base_username}_{counter}"
+                    counter += 1
+                
                 user = User(
-                    username=data['email'].split('@')[0],
-                    email=data['email'],
+                    username=username,
+                    email=email,
                     role='admin'  # Default role for new users
                 )
 
@@ -190,21 +242,24 @@ def create_app(config_name='default'):
 
                 db.session.add(user)
                 db.session.commit()
-                print(f"Created new user: {user.username}")
+                print(f"[AUTH DEBUG] Created new user: {user.username} (ID: {user.id})")
             except Exception as e:
                 db.session.rollback()
-                print(f"Error creating user: {e}")
-                return jsonify({'status': 'error', 'message': str(e)}), 500
+                print(f"[AUTH DEBUG] Error creating user: {e}")
+                return jsonify({'status': 'error', 'message': f'Error creating user: {str(e)}'}), 500
 
         # Set session data for Flask authentication
         session['user_id'] = user.id
-        session['firebase_uid'] = data.get('uid')
-        session['firebase_token'] = data.get('idToken')
+        session['firebase_uid'] = uid
+        session['firebase_token'] = id_token
 
+        print(f"[AUTH DEBUG] Authentication successful for user ID: {user.id}")
+        
         return jsonify({
             'status': 'success',
             'user_id': user.id,
-            'role': user.role
+            'role': user.role,
+            'message': 'Authentication successful'
         })
 
     # Calculator routes (as provided earlier)
@@ -492,6 +547,7 @@ def create_app(config_name='default'):
         return render_template('documents/view.html', document=document)
 
     @app.route('/api/auth/logout', methods=['POST'])
+    @csrf.exempt  # Exempt from CSRF protection for API endpoint
     def api_logout():
         """Clear server-side session when user logs out"""
         session.clear()

@@ -3,7 +3,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyDdn3wwgunnrdYDAdAt82_zGyx2A_jh2ac",
   authDomain: "avg-finance-37e38.firebaseapp.com",
   projectId: "avg-finance-37e38",
-  storageBucket: "avg-finance-37e38.firebasestorage.app",
+  storageBucket: "avg-finance-37e38.appspot.com",
   messagingSenderId: "96272499240",
   appId: "1:96272499240:web:2e65debfad26d65472eb1d",
   measurementId: "G-P3MYNH97VL"
@@ -17,7 +17,13 @@ try {
     // Create a global variable to indicate Firebase is not configured
     window.firebaseNotConfigured = true;
   } else {
+    console.log('[FIREBASE] Initializing Firebase with config:', {
+      authDomain: firebaseConfig.authDomain,
+      projectId: firebaseConfig.projectId,
+      storageBucket: firebaseConfig.storageBucket
+    });
     firebase.initializeApp(firebaseConfig);
+    console.log('[FIREBASE] Firebase initialized successfully');
   }
 } catch (error) {
   console.error("Error initializing Firebase:", error);

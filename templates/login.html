@@ -370,39 +370,63 @@
                     firebase.auth.Auth.Persistence.LOCAL :
                     firebase.auth.Auth.Persistence.SESSION;
 
+                console.log('[AUTH DEBUG] Starting Firebase authentication for:', email);
+
                 // First set persistence
                 firebase.auth().setPersistence(persistence)
                     .then(() => {
+                        console.log('[AUTH DEBUG] Persistence set successfully');
                         // Then sign in
                         return firebase.auth().signInWithEmailAndPassword(email, password);
                     })
                     .then((userCredential) => {
+                        console.log('[AUTH DEBUG] Firebase sign-in successful');
+                        console.log('[AUTH DEBUG] User credential:', {
+                            uid: userCredential.user.uid,
+                            email: userCredential.user.email,
+                            emailVerified: userCredential.user.emailVerified
+                        });
                         // Get the user's ID token
                         return userCredential.user.getIdToken();
                     })
                     .then((idToken) => {
+                        console.log('[AUTH DEBUG] ID token obtained successfully');
+                        const authData = {
+                            uid: firebase.auth().currentUser.uid,
+                            email: firebase.auth().currentUser.email,
+                            idToken: idToken
+                        };
+                        console.log('[AUTH DEBUG] Sending auth data to backend:', {
+                            uid: authData.uid,
+                            email: authData.email,
+                            idTokenLength: authData.idToken ? authData.idToken.length : 0
+                        });
+                        
                         // Send the token to your backend via HTTP
                         return fetch('/api/auth/verify', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify({
-                                uid: firebase.auth().currentUser.uid,
-                                email: firebase.auth().currentUser.email,
-                                idToken: idToken
-                            })
+                            body: JSON.stringify(authData)
                         });
                     })
-                    .then((response) => response.json())
+                    .then((response) => {
+                        console.log('[AUTH DEBUG] Backend response status:', response.status);
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        return response.json();
+                    })
                     .then((data) => {
+                        console.log('[AUTH DEBUG] Backend response data:', data);
                         if (data.status === 'success') {
-                            console.log("Authentication successful, redirecting to dashboard");
+                            console.log("[AUTH DEBUG] Authentication successful, redirecting to dashboard");
                             // Redirect to dashboard
                             window.location.href = '/dashboard';
                         } else {
                             // Handle backend error
-                            throw new Error('Backend authentication failed: ' + JSON.stringify(data));
+                            throw new Error('Backend authentication failed: ' + (data.message || JSON.stringify(data)));
                         }
                     })
                     .catch((error) => {
@@ -410,7 +434,7 @@
                         loadingOverlay.style.display = 'none';
 
                         // Show error message
-                        console.error("Login error:", error);
+                        console.error("[AUTH DEBUG] Login error:", error);
 
                         if (error.code) {
                             // Firebase Auth error
@@ -431,10 +455,13 @@
                                     loginError.textContent = 'Too many unsuccessful login attempts. Please try again later.';
                                     break;
                                 default:
-                                    loginError.textContent = 'An error occurred. Please try again.';
+                                    loginError.textContent = `Firebase error: ${error.message}`;
                             }
+                        } else if (error.message.includes('HTTP')) {
+                            // Backend HTTP error
+                            loginError.textContent = `Server error: ${error.message}`;
                         } else {
-                            loginError.textContent = 'Authentication failed. Please try again.';
+                            loginError.textContent = `Authentication failed: ${error.message}`;
                         }
 
                         loginError.style.display = 'block';
