@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, g
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, g, current_app
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
+from flask_cors import CORS
 import os
 import json
 
@@ -13,37 +14,85 @@ from utils.helpers import (calculate_emi, generate_amortization_schedule,
                            calculate_gold_loan, convert_gold_measurement,
                            get_current_gold_rate, format_currency)
 
-# Import Firebase auth functions - with graceful fallback
+# Import Firebase auth functions - with proper initialization
 try:
-    from firebase_auth import firebase_auth_required, verify_firebase_token, create_firebase_user, FIREBASE_ENABLED
+    import firebase_admin
+    from firebase_admin import credentials, auth as firebase_auth
+
+    if not firebase_admin._apps:
+        # This is the change: point directly to your file
+        cred = credentials.Certificate("service-account.json")
+        firebase_admin.initialize_app(cred)
+
+    FIREBASE_ENABLED = True
+    print("Firebase Admin SDK initialized successfully")
+
 except Exception as e:
-    print(f"Error importing firebase_auth: {e}")
+    print(f"Error initializing Firebase: {e}")
+    FIREBASE_ENABLED = False
 
 
-    # Define fallback functions
-    def firebase_auth_required(f):
-        return f
+    # Define fallback functions for when Firebase is not available
+    class MockFirebaseAuth:
+        @staticmethod
+        def verify_id_token(token):
+            return {"uid": "dev_user", "email": "dev@example.com"}
 
 
-    def verify_firebase_token(token):
+    firebase_auth = MockFirebaseAuth()
+
+
+# Define the auth decorator
+def firebase_auth_required(f):
+    def decorated_function(*args, **kwargs):
+        if not FIREBASE_ENABLED:
+            return f(*args, **kwargs)
+
+        # Add your Firebase auth logic here if needed
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+# Helper functions
+def verify_firebase_token(token):
+    if not FIREBASE_ENABLED:
         return {"uid": "dev_user", "email": "dev@example.com"}
 
+    try:
+        decoded_token = firebase_auth.verify_id_token(token)
+        return decoded_token
+    except Exception as e:
+        print(f"Error verifying Firebase token: {e}")
+        return None
 
-    def create_firebase_user(email, password):
+
+def create_firebase_user(email, password):
+    if not FIREBASE_ENABLED:
         return {"uid": "new_dev_user", "email": email}
 
-
-    FIREBASE_ENABLED = False
+    try:
+        user = firebase_auth.create_user(
+            email=email,
+            password=password
+        )
+        return {"uid": user.uid, "email": email}
+    except Exception as e:
+        print(f"Error creating Firebase user: {e}")
+        return None
 
 
 def create_app(config_name='default'):
     app = Flask(__name__)
+    # csrf = CSRFProtect(app)
+
+    # Exempt Firebase auth endpoint from CSRF protection
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
     # Initialize extensions
     db.init_app(app)
-    csrf = CSRFProtect(app)
+    # csrf = CSRFProtect(app)
 
     # Initialize login manager
     login_manager = LoginManager()
@@ -116,6 +165,7 @@ def create_app(config_name='default'):
 
         # Return URL path
         return f"/uploads/{folder}/{unique_filename}"
+
     # Enhanced login security
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -163,55 +213,144 @@ def create_app(config_name='default'):
         return render_template('login.html', firebase_enabled=FIREBASE_ENABLED)
 
     # Firebase Auth API endpoint
+    # Replace your existing /api/auth/verify route with this enhanced version
     @app.route('/api/auth/verify', methods=['POST'])
+    # @csrf.exempt
     def verify_auth():
-        """Verify Firebase authentication and link to local user"""
-        data = request.json
+        try:
+            # Debug: Print request details
+            print(f"Request method: {request.method}")
+            print(f"Request headers: {dict(request.headers)}")
+            print(f"Request content type: {request.content_type}")
 
-        if not data or not data.get('uid') or not data.get('email'):
-            return jsonify({'status': 'error', 'message': 'Invalid data'}), 400
-
-        # Check if user exists in our database
-        user = User.query.filter_by(email=data['email']).first()
-
-        if not user:
+            # Try to get JSON data FIRST
             try:
-                # Create user in database if doesn't exist
-                # Remove firebase_uid since it's not in your model
-                user = User(
-                    username=data['email'].split('@')[0],
-                    email=data['email'],
-                    role='admin'  # Default role for new users
-                )
+                data = request.get_json()
+                # Now it's safe to print the parsed data for debugging
+                print(f"Request Body (Parsed JSON): {data}")
+            except Exception as json_error:
+                print(f"JSON parsing error: {json_error}")
+                # You can also log the raw data here if parsing fails, but be careful
+                # print(f"Raw data on error: {request.data}") # This might still cause issues
+                return jsonify({'status': 'error', 'message': 'Invalid JSON format'}), 400
 
-                # Set password for Flask login
-                if hasattr(user, 'set_password'):
-                    user.set_password('default_password')  # Should be changed
+            if not data:
+                print("No JSON data received")
+                return jsonify({'status': 'error', 'message': 'No data provided'}), 400
 
-                db.session.add(user)
-                db.session.commit()
-                print(f"Created new user: {user.username}")
+            # ... rest of your function logic ...
+
+            # Debug: Check what fields are present
+            print(f"Data keys: {list(data.keys()) if data else 'None'}")
+            print(f"UID: {data.get('uid')}")
+            print(f"Email: {data.get('email')}")
+            print(f"idToken present: {'idToken' in data if data else False}")
+
+            # Check required fields
+            missing_fields = []
+            if not data.get('uid'):
+                missing_fields.append('uid')
+            if not data.get('email'):
+                missing_fields.append('email')
+            if not data.get('idToken'):
+                missing_fields.append('idToken')
+
+            if missing_fields:
+                error_msg = f'Missing required fields: {", ".join(missing_fields)}'
+                print(f"Validation error: {error_msg}")
+                return jsonify({'status': 'error', 'message': error_msg}), 400
+
+            # Continue with existing logic...
+            # Verify Firebase token
+            try:
+                if FIREBASE_ENABLED:
+                    decoded_token = firebase_auth.verify_id_token(data['idToken'])
+                    print(f"Decoded token: {decoded_token}")
+
+                    # Verify UID matches
+                    if decoded_token['uid'] != data['uid']:
+                        return jsonify({'status': 'error', 'message': 'UID mismatch'}), 401
+
+                else:
+                    # Fallback for testing
+                    decoded_token = {"uid": data['uid'], "email": data['email']}
+                    print("Using fallback authentication (Firebase disabled)")
+
             except Exception as e:
-                db.session.rollback()
-                print(f"Error creating user: {e}")
-                return jsonify({'status': 'error', 'message': str(e)}), 500
+                print(f"Token verification error: {e}")
+                return jsonify({'status': 'error', 'message': 'Invalid Firebase ID token'}), 401
 
-        # Set session data for Flask authentication
-        session['user_id'] = user.id
-        session['firebase_uid'] = data.get('uid')
-        session['firebase_token'] = data.get('idToken')
+            # Check if user exists in our database
+            user = User.query.filter_by(email=data['email']).first()
 
-        return jsonify({
-            'status': 'success',
-            'user_id': user.id,
-            'role': user.role
-        })
+            if not user:
+                try:
+                    # Create new user
+                    username = data['email'].split('@')[0]
 
-    # Calculator routes (as provided earlier)
+                    # Make sure username is unique
+                    counter = 1
+                    original_username = username
+                    while User.query.filter_by(username=username).first():
+                        username = f"{original_username}_{counter}"
+                        counter += 1
+
+                    user = User(
+                        username=username,
+                        email=data['email'],
+                        first_name=data.get('first_name', ''),
+                        last_name=data.get('last_name', ''),
+                        role='user'  # Default role for new users
+                    )
+
+                    # Set a default password (won't be used for Firebase auth)
+                    if hasattr(user, 'set_password'):
+                        user.set_password('firebase_user_no_password')
+
+                    db.session.add(user)
+                    db.session.commit()
+                    print(f"Created new user: {user.username} ({user.email})")
+
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"Error creating user: {e}")
+                    return jsonify({'status': 'error', 'message': f'Error creating user: {str(e)}'}), 500
+
+            # Update user's last login
+            user.last_login = datetime.utcnow()
+            db.session.commit()
+
+            # Set session data
+            session['user_id'] = user.id
+            session['firebase_uid'] = data['uid']
+            session['firebase_token'] = data['idToken']
+            session['authenticated'] = True
+
+            # Also login the user with Flask-Login for compatibility
+            login_user(user, remember=True)
+
+            print(f"User authenticated successfully: {user.email}")
+
+            return jsonify({
+                'status': 'success',
+                'user_id': user.id,
+                'role': user.role,
+                'username': user.username,
+                'email': user.email,
+                'message': 'Authentication successful'
+            })
+
+        except Exception as e:
+            print(f"Authentication error: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'status': 'error', 'message': f'Authentication failed: {str(e)}'}), 500
+
+    # Calculator routes
     @app.route('/calculators')
     def calculators():
         """Main calculators page"""
-        return render_template('calculators.html')
+        return render_template('calculator.html')
 
     @app.route('/calculators/emi')
     def emi_calculator():
@@ -248,7 +387,7 @@ def create_app(config_name='default'):
         result = calculate_gold_loan(weight, purity, rate_per_gram, loan_to_value)
 
         return jsonify(result)
-    
+
     @app.route('/api/calculate/emi', methods=['POST'])
     def calculate_emi_api():
         """API endpoint for EMI calculation"""
@@ -269,7 +408,7 @@ def create_app(config_name='default'):
         result = generate_amortization_schedule(principal, interest_rate, tenure_months)
 
         return jsonify(result)
-    
+
     @app.route('/api/calculate/gold_conversion', methods=['POST'])
     def calculate_gold_conversion_api():
         """API endpoint for gold carat/percentage conversion"""
@@ -300,11 +439,11 @@ def create_app(config_name='default'):
         """List all customers with pagination"""
         page = request.args.get('page', 1, type=int)
         per_page = 20  # Number of customers per page
-        
+
         customers = Customer.query.order_by(Customer.created_at.desc()).paginate(
             page=page, per_page=per_page, error_out=False
         )
-        
+
         return render_template('customers/list.html', customers=customers)
 
     @app.route('/customers/new', methods=['GET', 'POST'])
@@ -388,11 +527,11 @@ def create_app(config_name='default'):
         """List all loans with pagination"""
         page = request.args.get('page', 1, type=int)
         per_page = 20  # Number of loans per page
-        
+
         loans = Loan.query.order_by(Loan.created_at.desc()).paginate(
             page=page, per_page=per_page, error_out=False
         )
-        
+
         return render_template('loans/list.html', loans=loans)
 
     @app.route('/loans/new/<int:customer_id>', methods=['GET', 'POST'])
@@ -505,42 +644,70 @@ def create_app(config_name='default'):
     # Add the dashboard route
     @app.route('/dashboard')
     def dashboard():
+        print(f"Dashboard access attempt:")
+        print(f"  - current_user.is_authenticated: {current_user.is_authenticated}")
+        print(f"  - 'user_id' in session: {'user_id' in session}")
+        print(f"  - session contents: {dict(session)}")
+
         # Check if user is authenticated either by Flask-Login or Firebase
         if not current_user.is_authenticated and 'user_id' not in session:
+            print("User not authenticated, redirecting to login")
             return redirect(url_for('login'))
 
+        # Get user info
+        if current_user.is_authenticated:
+            user = current_user
+        else:
+            user = User.query.get(session['user_id'])
+            if not user:
+                print("User not found in database, clearing session")
+                session.clear()
+                return redirect(url_for('login'))
+
+        print(f"User authenticated: {user.email}")
+
         # Get summary statistics
-        total_loans = Loan.query.count()
-        active_loans = Loan.query.filter_by(status='active').count()
-        total_customers = Customer.query.count()
+        try:
+            total_loans = Loan.query.count()
+            active_loans = Loan.query.filter_by(status='active').count()
+            total_customers = Customer.query.count()
 
-        # Calculate total loan amount and outstanding amount
-        loans = Loan.query.all()
-        total_loan_amount = sum(loan.loan_amount for loan in loans)
-        outstanding_amount = sum(loan.remaining_amount for loan in loans if loan.status != LoanStatus.PAID.value)
+            # Calculate total loan amount and outstanding amount
+            loans = Loan.query.all()
+            total_loan_amount = sum(loan.loan_amount for loan in loans)
+            outstanding_amount = sum(loan.remaining_amount for loan in loans if loan.status != LoanStatus.PAID.value)
 
-        # Get recent loans
-        recent_loans = Loan.query.order_by(Loan.created_at.desc()).limit(5).all()
+            # Get recent loans
+            recent_loans = Loan.query.order_by(Loan.created_at.desc()).limit(5).all()
 
-        # Get recent customers
-        recent_customers = Customer.query.order_by(Customer.created_at.desc()).limit(5).all()
+            # Get recent customers
+            recent_customers = Customer.query.order_by(Customer.created_at.desc()).limit(5).all()
 
-        # Get overdue loans
-        overdue_loans = Loan.query.filter_by(status=LoanStatus.OVERDUE.value).count()
+            # Get overdue loans
+            overdue_loans = Loan.query.filter_by(status=LoanStatus.OVERDUE.value).count()
 
-        stats = {
-            'total_loans': total_loans,
-            'active_loans': active_loans,
-            'total_customers': total_customers,
-            'total_loan_amount': format_currency(total_loan_amount),
-            'outstanding_amount': format_currency(outstanding_amount),
-            'overdue_loans': overdue_loans
-        }
+            stats = {
+                'total_loans': total_loans,
+                'active_loans': active_loans,
+                'total_customers': total_customers,
+                'total_loan_amount': format_currency(total_loan_amount),
+                'outstanding_amount': format_currency(outstanding_amount),
+                'overdue_loans': overdue_loans
+            }
 
-        return render_template('dashboard.html',
-                               stats=stats,
-                               recent_loans=recent_loans,
-                               recent_customers=recent_customers)
+            return render_template('dashboard.html',
+                                   stats=stats,
+                                   recent_loans=recent_loans,
+                                   recent_customers=recent_customers,
+                                   user=user)
+        except Exception as e:
+            print(f"Error loading dashboard: {e}")
+            # Return dashboard with empty stats if there's an error
+            return render_template('dashboard.html',
+                                   stats={},
+                                   recent_loans=[],
+                                   recent_customers=[],
+                                   user=user)
 
     # API endpoint to get user info
     @app.route('/api/user/info')
