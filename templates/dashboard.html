@@ -224,6 +224,13 @@
             color: #555;
         }
 
+        .stats-card-subtitle {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
         .notification-badge {
             position: absolute;
             top: -5px;
@@ -401,6 +408,14 @@
         }
 
         .bg-gradient-4 {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+
+        .bg-gradient-5 {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .bg-gradient-6 {
             background: linear-gradient(135deg, #e74c3c, #c0392b);
         }
 
@@ -683,43 +698,73 @@
 
                 <!-- Stats Cards Row -->
                 <div class="row">
-                    <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="col-lg-4 col-md-6 mb-4">
                         <div class="stats-card">
                             <div class="stats-card-icon bg-gradient-1">
-                                <i class="fas fa-file-invoice-dollar"></i>
-                            </div>
-                            <div class="stats-card-value">{{ stats.total_loans }}</div>
-                            <div class="stats-card-title">Total Loans</div>
-                            <i class="fas fa-file-invoice-dollar stats-icon-bg"></i>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6 mb-4">
-                        <div class="stats-card">
-                            <div class="stats-card-icon bg-gradient-2">
                                 <i class="fas fa-users"></i>
                             </div>
-                            <div class="stats-card-value">{{ stats.total_customers }}</div>
-                            <div class="stats-card-title">Total Customers</div>
+                            <div class="stats-card-value">{{ stats.total_customers or 0 }}</div>
+                            <div class="stats-card-title">Total Loan Takers</div>
+                            <div class="stats-card-subtitle">Active Customers</div>
                             <i class="fas fa-users stats-icon-bg"></i>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="col-lg-4 col-md-6 mb-4">
                         <div class="stats-card">
-                            <div class="stats-card-icon bg-gradient-3">
+                            <div class="stats-card-icon bg-gradient-2">
                                 <i class="fas fa-rupee-sign"></i>
                             </div>
-                            <div class="stats-card-value">{{ stats.total_loan_amount }}</div>
-                            <div class="stats-card-title">Total Loan Amount</div>
+                            <div class="stats-card-value">{{ stats.total_loan_amount or '₹0' }}</div>
+                            <div class="stats-card-title">Total Loans Disbursed</div>
+                            <div class="stats-card-subtitle">All Time Value</div>
                             <i class="fas fa-rupee-sign stats-icon-bg"></i>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="stats-card">
+                            <div class="stats-card-icon bg-gradient-3">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <div class="stats-card-value">{{ stats.average_interest_rate or '0%' }}</div>
+                            <div class="stats-card-title">Average Interest Rate</div>
+                            <div class="stats-card-subtitle">Portfolio Average</div>
+                            <i class="fas fa-percentage stats-icon-bg"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Row of Stats Cards -->
+                <div class="row">
+                    <div class="col-lg-4 col-md-6 mb-4">
                         <div class="stats-card">
                             <div class="stats-card-icon bg-gradient-4">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <div class="stats-card-value">{{ stats.active_loans or 0 }}</div>
+                            <div class="stats-card-title">Active Loans</div>
+                            <div class="stats-card-subtitle">Currently Running</div>
+                            <i class="fas fa-file-invoice-dollar stats-icon-bg"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="stats-card">
+                            <div class="stats-card-icon bg-gradient-5">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stats-card-value">{{ stats.monthly_collection or '₹0' }}</div>
+                            <div class="stats-card-title">Monthly Collections</div>
+                            <div class="stats-card-subtitle">This Month</div>
+                            <i class="fas fa-chart-line stats-icon-bg"></i>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="stats-card">
+                            <div class="stats-card-icon bg-gradient-6">
                                 <i class="fas fa-exclamation-circle"></i>
                             </div>
-                            <div class="stats-card-value">{{ stats.overdue_loans }}</div>
+                            <div class="stats-card-value">{{ stats.overdue_loans or 0 }}</div>
                             <div class="stats-card-title">Overdue Loans</div>
+                            <div class="stats-card-subtitle">Requires Attention</div>
                             <i class="fas fa-exclamation-circle stats-icon-bg"></i>
                         </div>
                     </div>

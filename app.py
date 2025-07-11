@@ -677,6 +677,23 @@ def create_app(config_name='default'):
             total_loan_amount = sum(loan.loan_amount for loan in loans)
             outstanding_amount = sum(loan.remaining_amount for loan in loans if loan.status != LoanStatus.PAID.value)
 
+            # Calculate average interest rate
+            if loans:
+                total_interest = sum(loan.interest_rate for loan in loans)
+                average_interest_rate = total_interest / len(loans)
+            else:
+                average_interest_rate = 0
+
+            # Calculate monthly collections (current month)
+            from datetime import datetime
+            current_month = datetime.now().month
+            current_year = datetime.now().year
+            
+            monthly_payments = Payment.query.filter(
+                Payment.payment_date >= datetime(current_year, current_month, 1)
+            ).all()
+            monthly_collection = sum(payment.amount for payment in monthly_payments)
+
             # Get recent loans
             recent_loans = Loan.query.order_by(Loan.created_at.desc()).limit(5).all()
 
@@ -687,12 +704,13 @@ def create_app(config_name='default'):
             overdue_loans = Loan.query.filter_by(status=LoanStatus.OVERDUE.value).count()
 
             stats = {
-                'total_loans': total_loans,
-                'active_loans': active_loans,
                 'total_customers': total_customers,
                 'total_loan_amount': format_currency(total_loan_amount),
+                'average_interest_rate': f"{average_interest_rate:.1f}%",
+                'active_loans': active_loans,
+                'monthly_collection': format_currency(monthly_collection),
+                'overdue_loans': overdue_loans,
                 'outstanding_amount': format_currency(outstanding_amount),
-                'overdue_loans': overdue_loans
             }
 
             return render_template('dashboard.html',
