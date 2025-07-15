@@ -350,7 +350,7 @@ def create_app(config_name='default'):
     @app.route('/calculators')
     def calculators():
         """Main calculators page"""
-        return render_template('calculator.html')
+        return render_template('calculators.html')
 
     @app.route('/calculators/emi')
     def emi_calculator():
