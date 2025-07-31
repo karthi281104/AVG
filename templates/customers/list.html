@@ -2,9 +2,641 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers - AVG Loan Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='admin.css') }}" rel="stylesheet">
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
 </head>
 <body>
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <a href="/dashboard" class="sidebar-brand">
+                <i class="fas fa-university"></i>
+                <span class="brand-text">AVG Loans</span>
+            </a>
+        </div>
+
+        <!-- User Profile -->
+        <div class="user-profile">
+            <div class="user-avatar" id="userAvatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+                <h6 id="userName">Loading...</h6>
+                <small id="userRole">User</small>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard" data-tooltip="Dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/customers" data-tooltip="Customers">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/loans" data-tooltip="Loans">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>Loans</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/payments" data-tooltip="Payments">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/reports" data-tooltip="Reports">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/calculators" data-tooltip="Calculators">
+                        <i class="fas fa-calculator"></i>
+                        <span>Calculators</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/settings" data-tooltip="Settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">Customers</h1>
+            </div>
+
+            <div class="header-right">
+                <!-- Search Box -->
+                <div class="search-box">
+                    <input type="text" placeholder="Search customers...">
+                    <i class="fas fa-search"></i>
+                </div>
+
+                <!-- User Menu -->
+                <div class="user-menu">
+                    <button class="user-menu-toggle" id="userMenuToggle">
+                        <div class="user-menu-avatar" id="headerUserAvatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span id="headerUserName">Loading...</span>
+                        <i class="fas fa-chevron-down ms-2"></i>
+                    </button>
+
+                    <div class="user-menu-dropdown" id="userMenuDropdown">
+                        <a href="/profile" class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>Profile</span>
+                        </a>
+                        <a href="/settings" class="dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Customer Management</h2>
+                    <p class="text-muted mb-0">Manage all customer information and records</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" onclick="exportCustomers()">
+                        <i class="fas fa-download me-2"></i>Export
+                    </button>
+                    <a href="/customers/new" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Customer
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Total Customers</div>
+                            <div class="stat-icon primary">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value">{{ customers.total if customers.pages else 0 }}</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>All registered customers</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">Active Customers</div>
+                            <div class="stat-icon success">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="activeCustomers">0</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>With active loans</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">KYC Verified</div>
+                            <div class="stat-icon warning">
+                                <i class="fas fa-certificate"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="kycVerified">0</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-check"></i>
+                            <span>Verified customers</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-title">New This Month</div>
+                            <div class="stat-icon info">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="newThisMonth">0</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-calendar"></i>
+                            <span>Recent additions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers Table -->
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h3 class="card-title">All Customers</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="customersTable">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Contact</th>
+                                    <th>KYC Status</th>
+                                    <th>Active Loans</th>
+                                    <th>Total Loan Amount</th>
+                                    <th>Joined Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if customers.items %}
+                                    {% for customer in customers.items %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="user-avatar me-3" style="width: 40px; height: 40px; background: var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
+                                                    {{ customer.name[0].upper() }}
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">{{ customer.name }}</h6>
+                                                    <small class="text-muted">ID: {{ customer.id }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <div><i class="fas fa-phone text-primary me-1"></i>{{ customer.phone }}</div>
+                                                {% if customer.email %}
+                                                <div><i class="fas fa-envelope text-muted me-1"></i>{{ customer.email }}</div>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if customer.kyc_verified %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Verified
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i>Pending
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% set active_loans = customer.loans|selectattr('status', 'equalto', 'active')|list %}
+                                            <span class="badge bg-primary">{{ active_loans|length }}</span>
+                                        </td>
+                                        <td>
+                                            {% set total_amount = customer.loans|selectattr('status', 'equalto', 'active')|sum(attribute='loan_amount') %}
+                                            <strong>₹{{ "{:,.2f}".format(total_amount) if total_amount else "0.00" }}</strong>
+                                        </td>
+                                        <td>{{ customer.created_at.strftime('%d %b, %Y') }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="/customers/{{ customer.id }}" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="/customers/{{ customer.id }}/edit" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="/loans/new/{{ customer.id }}" class="btn btn-sm btn-outline-success" title="New Loan">
+                                                    <i class="fas fa-plus"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4">
+                                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                            <p class="text-muted">No customers found</p>
+                                            <a href="/customers/new" class="btn btn-primary">
+                                                <i class="fas fa-plus me-2"></i>Add First Customer
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if customers.pages > 1 %}
+                    <nav aria-label="Customers pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if customers.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('list_customers', page=customers.prev_num) }}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for page_num in customers.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != customers.page %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('list_customers', page=page_num) }}">{{ page_num }}</a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if customers.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('list_customers', page=customers.next_num) }}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+
+    <script>
+        // Include the same dashboard controller from dashboard.html
+        class DashboardController {
+            constructor() {
+                this.initializeElements();
+                this.initializeEventListeners();
+                this.loadUserInfo();
+                this.initializeResponsive();
+                this.sidebarCollapsed = false;
+            }
+
+            initializeElements() {
+                this.elements = {
+                    sidebar: document.getElementById('sidebar'),
+                    sidebarToggle: document.getElementById('sidebarToggle'),
+                    sidebarOverlay: document.getElementById('sidebarOverlay'),
+                    mainContent: document.getElementById('mainContent'),
+                    userMenuToggle: document.getElementById('userMenuToggle'),
+                    userMenuDropdown: document.getElementById('userMenuDropdown'),
+                    logoutBtn: document.getElementById('logoutBtn'),
+                    userName: document.getElementById('userName'),
+                    userRole: document.getElementById('userRole'),
+                    userAvatar: document.getElementById('userAvatar'),
+                    headerUserName: document.getElementById('headerUserName'),
+                    headerUserAvatar: document.getElementById('headerUserAvatar')
+                };
+            }
+
+            initializeEventListeners() {
+                // Sidebar toggle
+                this.elements.sidebarToggle.addEventListener('click', () => {
+                    this.toggleSidebar();
+                });
+
+                // Sidebar overlay click (mobile)
+                this.elements.sidebarOverlay.addEventListener('click', () => {
+                    this.closeSidebar();
+                });
+
+                // User menu toggle
+                this.elements.userMenuToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleUserMenu();
+                });
+
+                // Close user menu when clicking outside
+                document.addEventListener('click', () => {
+                    this.closeUserMenu();
+                });
+
+                // Logout functionality
+                this.elements.logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.handleLogout();
+                });
+            }
+
+            initializeResponsive() {
+                window.addEventListener('resize', () => {
+                    this.handleResize();
+                });
+                this.handleResize();
+            }
+
+            handleResize() {
+                const isMobile = window.innerWidth <= 992;
+                if (isMobile) {
+                    this.elements.sidebar.classList.remove('collapsed');
+                    this.elements.sidebar.classList.add('mobile-hidden');
+                    this.elements.mainContent.classList.add('mobile-expanded');
+                    this.elements.mainContent.classList.remove('sidebar-collapsed');
+                } else {
+                    this.elements.sidebar.classList.remove('mobile-hidden', 'show');
+                    this.elements.mainContent.classList.remove('mobile-expanded');
+                    this.elements.sidebarOverlay.classList.remove('show');
+                    if (this.sidebarCollapsed) {
+                        this.elements.sidebar.classList.add('collapsed');
+                        this.elements.mainContent.classList.add('sidebar-collapsed');
+                    }
+                }
+            }
+
+            toggleSidebar() {
+                const isMobile = window.innerWidth <= 992;
+                if (isMobile) {
+                    this.elements.sidebar.classList.toggle('show');
+                    this.elements.sidebarOverlay.classList.toggle('show');
+                } else {
+                    this.sidebarCollapsed = !this.sidebarCollapsed;
+                    this.elements.sidebar.classList.toggle('collapsed');
+                    this.elements.mainContent.classList.toggle('sidebar-collapsed');
+                }
+            }
+
+            closeSidebar() {
+                this.elements.sidebar.classList.remove('show');
+                this.elements.sidebarOverlay.classList.remove('show');
+            }
+
+            toggleUserMenu() {
+                this.elements.userMenuDropdown.classList.toggle('show');
+            }
+
+            closeUserMenu() {
+                this.elements.userMenuDropdown.classList.remove('show');
+            }
+
+            async loadUserInfo() {
+                try {
+                    const response = await fetch('/api/user/info');
+                    if (response.ok) {
+                        const userData = await response.json();
+                        if (userData.authenticated) {
+                            this.updateUserDisplay(userData);
+                            return;
+                        }
+                    }
+                    this.updateUserDisplay({
+                        username: 'User',
+                        email: 'user@example.com',
+                        role: 'user'
+                    });
+                } catch (error) {
+                    console.error('Error loading user info:', error);
+                    this.updateUserDisplay({
+                        username: 'User',
+                        email: 'user@example.com',
+                        role: 'user'
+                    });
+                }
+            }
+
+            updateUserDisplay(userData) {
+                const displayName = userData.username || userData.email || 'User';
+                const userRole = userData.role || 'user';
+                const initials = this.getInitials(displayName);
+
+                if (this.elements.userName) {
+                    this.elements.userName.textContent = displayName;
+                }
+                if (this.elements.userRole) {
+                    this.elements.userRole.textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
+                }
+                if (this.elements.headerUserName) {
+                    this.elements.headerUserName.textContent = displayName;
+                }
+                if (this.elements.userAvatar) {
+                    this.elements.userAvatar.innerHTML = initials;
+                }
+                if (this.elements.headerUserAvatar) {
+                    this.elements.headerUserAvatar.innerHTML = initials;
+                }
+            }
+
+            getInitials(name) {
+                return name.split(' ')
+                    .map(word => word.charAt(0))
+                    .join('')
+                    .toUpperCase()
+                    .substring(0, 2);
+            }
+
+            async handleLogout() {
+                try {
+                    this.elements.logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Logging out...</span>';
+                    this.elements.logoutBtn.style.pointerEvents = 'none';
+
+                    if (window.FirebaseAuth && window.isFirebaseReady && window.isFirebaseReady()) {
+                        try {
+                            await window.FirebaseAuth.signOut();
+                        } catch (firebaseError) {
+                            console.warn('Firebase logout failed:', firebaseError);
+                        }
+                    }
+
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    window.location.href = '/login';
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    window.location.href = '/login';
+                }
+            }
+        }
+
+        // Initialize DataTable and dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dashboardController = new DashboardController();
+
+            // Initialize DataTable
+            $('#customersTable').DataTable({
+                "pageLength": 25,
+                "order": [[5, "desc"]], // Order by joined date
+                "columnDefs": [
+                    { "orderable": false, "targets": 6 } // Disable ordering on actions column
+                ],
+                "responsive": true,
+                "language": {
+                    "search": "Search customers:",
+                    "lengthMenu": "Show _MENU_ customers per page",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ customers",
+                    "infoEmpty": "No customers found",
+                    "infoFiltered": "(filtered from _MAX_ total customers)"
+                }
+            });
+
+            // Calculate stats
+            calculateStats();
+        });
+
+        function calculateStats() {
+            const rows = document.querySelectorAll('#customersTable tbody tr');
+            let activeCustomers = 0;
+            let kycVerified = 0;
+            let newThisMonth = 0;
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+
+            rows.forEach(row => {
+                // Count active customers (those with active loans)
+                const activeLoansCell = row.cells[3];
+                if (activeLoansCell && parseInt(activeLoansCell.textContent) > 0) {
+                    activeCustomers++;
+                }
+
+                // Count KYC verified
+                const kycCell = row.cells[2];
+                if (kycCell && kycCell.textContent.includes('Verified')) {
+                    kycVerified++;
+                }
+
+                // Count new this month
+                const dateCell = row.cells[5];
+                if (dateCell) {
+                    const dateText = dateCell.textContent;
+                    const date = new Date(dateText);
+                    if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+                        newThisMonth++;
+                    }
+                }
+            });
+
+            // Update stats
+            document.getElementById('activeCustomers').textContent = activeCustomers;
+            document.getElementById('kycVerified').textContent = kycVerified;
+            document.getElementById('newThisMonth').textContent = newThisMonth;
+        }
+
+        function exportCustomers() {
+            // Simple CSV export
+            const table = document.getElementById('customersTable');
+            const rows = table.querySelectorAll('tr');
+            let csv = [];
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const cols = row.querySelectorAll('td, th');
+                let csvRow = [];
+                
+                for (let j = 0; j < cols.length - 1; j++) { // Exclude actions column
+                    csvRow.push('"' + cols[j].textContent.trim().replace(/"/g, '""') + '"');
+                }
+                csv.push(csvRow.join(','));
+            }
+
+            const csvContent = csv.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'customers_' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
 </body>
 </html>

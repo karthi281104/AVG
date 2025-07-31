@@ -2,9 +2,280 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Customer - AVG Loans</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .section-divider {
+            border-left: 4px solid #0d6efd;
+            padding-left: 15px;
+            margin-bottom: 25px;
+        }
+        .section-title {
+            color: #0d6efd;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        .required-asterisk {
+            color: #dc3545;
+        }
+        .photo-preview {
+            max-height: 120px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
 </head>
 <body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <main class="ms-sm-auto px-md-4">
+                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                        <h1 class="h2">Edit Customer - {{ customer.name }}</h1>
+                        <div class="btn-toolbar mb-2 mb-md-0">
+                            <a href="{{ url_for('view_customer', customer_id=customer.id) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Customer
+                            </a>
+                        </div>
+                    </div>
 
+                    <!-- Flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Customer Form -->
+                    <div class="card">
+                        <div class="card-body">
+                            <form method="POST" enctype="multipart/form-data" id="customerForm">
+
+                                <!-- Personal Information -->
+                                <div class="section-divider">
+                                    <h5 class="section-title"><i class="fas fa-user me-2"></i>Personal Information</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="name" class="form-label">Full Name <span class="required-asterisk">*</span></label>
+                                                <input type="text" class="form-control" id="name" name="name" value="{{ customer.name }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="phone" class="form-label">Phone Number <span class="required-asterisk">*</span></label>
+                                                <input type="tel" class="form-control" id="phone" name="phone" value="{{ customer.phone }}" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="email" class="form-label">Email Address</label>
+                                                <input type="email" class="form-control" id="email" name="email" value="{{ customer.email or '' }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="status" class="form-label">Status</label>
+                                                <select class="form-select" id="status" name="status">
+                                                    <option value="active" {{ 'selected' if customer.status == 'active' else '' }}>Active</option>
+                                                    <option value="inactive" {{ 'selected' if customer.status == 'inactive' else '' }}>Inactive</option>
+                                                    <option value="blacklisted" {{ 'selected' if customer.status == 'blacklisted' else '' }}>Blacklisted</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="mb-3">
+                                                <label for="address" class="form-label">Address</label>
+                                                <textarea class="form-control" id="address" name="address" rows="3">{{ customer.address or '' }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Identity Documents -->
+                                <div class="section-divider">
+                                    <h5 class="section-title"><i class="fas fa-id-card me-2"></i>Identity Documents</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="id_proof_type" class="form-label">ID Proof Type</label>
+                                                <select class="form-select" id="id_proof_type" name="id_proof_type">
+                                                    <option value="">Select ID Type</option>
+                                                    <option value="aadhar" {{ 'selected' if customer.id_proof_type == 'aadhar' else '' }}>Aadhar Card</option>
+                                                    <option value="pan" {{ 'selected' if customer.id_proof_type == 'pan' else '' }}>PAN Card</option>
+                                                    <option value="passport" {{ 'selected' if customer.id_proof_type == 'passport' else '' }}>Passport</option>
+                                                    <option value="driving_license" {{ 'selected' if customer.id_proof_type == 'driving_license' else '' }}>Driving License</option>
+                                                    <option value="voter_id" {{ 'selected' if customer.id_proof_type == 'voter_id' else '' }}>Voter ID</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="id_proof_number" class="form-label">ID Proof Number</label>
+                                                <input type="text" class="form-control" id="id_proof_number" name="id_proof_number" value="{{ customer.id_proof_number or '' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="id_proof_file" class="form-label">Update ID Proof Document</label>
+                                                <input type="file" class="form-control" id="id_proof_file" name="id_proof_file" accept=".jpg,.jpeg,.png,.pdf">
+                                                <div class="form-text">Leave empty to keep existing document</div>
+                                                {% if customer.id_proof_url %}
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Current: </small>
+                                                    <a href="{{ customer.id_proof_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-eye"></i> View Current Document
+                                                    </a>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="profile_photo" class="form-label">Update Profile Photo</label>
+                                                <input type="file" class="form-control" id="profile_photo" name="profile_photo" accept=".jpg,.jpeg,.png">
+                                                <div class="form-text">Leave empty to keep existing photo</div>
+                                                {% if customer.profile_photo_url %}
+                                                <div class="mt-2">
+                                                    <img src="{{ customer.profile_photo_url }}" class="photo-preview" alt="Current Photo">
+                                                </div>
+                                                {% endif %}
+                                                <img id="photoPreview" class="photo-preview" style="display: none;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- KYC Information -->
+                                <div class="section-divider">
+                                    <h5 class="section-title"><i class="fas fa-certificate me-2"></i>KYC Information</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="kyc_verified" name="kyc_verified" {{ 'checked' if customer.kyc_verified else '' }}>
+                                                    <label class="form-check-label" for="kyc_verified">
+                                                        <strong>KYC Verified</strong>
+                                                    </label>
+                                                    <div class="form-text">Check if all documents are verified</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            {% if customer.verification_date %}
+                                            <div class="mb-3">
+                                                <label class="form-label">Verification Date</label>
+                                                <div class="form-control-plaintext">{{ customer.verification_date.strftime('%d %B, %Y') }}</div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Additional Information -->
+                                <div class="section-divider">
+                                    <h5 class="section-title"><i class="fas fa-clipboard me-2"></i>Additional Information</h5>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="mb-3">
+                                                <label for="notes" class="form-label">Notes</label>
+                                                <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Any additional information about the customer">{{ customer.notes or '' }}</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="d-flex justify-content-between pt-3 border-top">
+                                    <a href="{{ url_for('view_customer', customer_id=customer.id) }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                                        <i class="fas fa-save"></i> Update Customer
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Profile photo preview
+            document.getElementById('profile_photo').addEventListener('change', function() {
+                const file = this.files[0];
+                const preview = document.getElementById('photoPreview');
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.style.display = 'none';
+                }
+            });
+
+            // File upload validation
+            document.querySelectorAll('input[type="file"]').forEach(input => {
+                input.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file && file.size > 16 * 1024 * 1024) {
+                        alert('File size must be less than 16MB');
+                        this.value = '';
+                    }
+                });
+            });
+
+            // Form submission
+            document.getElementById('customerForm').addEventListener('submit', function(e) {
+                // Basic validation
+                const name = document.getElementById('name').value.trim();
+                const phone = document.getElementById('phone').value.trim();
+
+                if (!name || !phone) {
+                    e.preventDefault();
+                    alert('Please fill in all required fields (Name and Phone)');
+                    return;
+                }
+
+                // Show loading state
+                document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                document.getElementById('submitBtn').disabled = true;
+            });
+        });
+    </script>
 </body>
 </html>

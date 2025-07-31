@@ -2,9 +2,602 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ customer.name }} - Customer Details</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='admin.css') }}" rel="stylesheet">
 </head>
 <body>
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <a href="/dashboard" class="sidebar-brand">
+                <i class="fas fa-university"></i>
+                <span class="brand-text">AVG Loans</span>
+            </a>
+        </div>
+
+        <!-- User Profile -->
+        <div class="user-profile">
+            <div class="user-avatar" id="userAvatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+                <h6 id="userName">Loading...</h6>
+                <small id="userRole">User</small>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="/dashboard" data-tooltip="Dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/customers" data-tooltip="Customers">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/loans" data-tooltip="Loans">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>Loans</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/payments" data-tooltip="Payments">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/reports" data-tooltip="Reports">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/calculators" data-tooltip="Calculators">
+                        <i class="fas fa-calculator"></i>
+                        <span>Calculators</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/settings" data-tooltip="Settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-left">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title">Customer Details</h1>
+            </div>
+
+            <div class="header-right">
+                <!-- User Menu -->
+                <div class="user-menu">
+                    <button class="user-menu-toggle" id="userMenuToggle">
+                        <div class="user-menu-avatar" id="headerUserAvatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span id="headerUserName">Loading...</span>
+                        <i class="fas fa-chevron-down ms-2"></i>
+                    </button>
+
+                    <div class="user-menu-dropdown" id="userMenuDropdown">
+                        <a href="/profile" class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>Profile</span>
+                        </a>
+                        <a href="/settings" class="dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="/customers">Customers</a></li>
+                    <li class="breadcrumb-item active">{{ customer.name }}</li>
+                </ol>
+            </nav>
+
+            <!-- Customer Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar me-4" style="width: 80px; height: 80px; background: var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem;">
+                                            {{ customer.name[0].upper() }}
+                                        </div>
+                                        <div>
+                                            <h2 class="mb-1">{{ customer.name }}</h2>
+                                            <p class="text-muted mb-2">Customer ID: {{ customer.id }}</p>
+                                            <div class="d-flex gap-2">
+                                                {% if customer.kyc_verified %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>KYC Verified
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-clock me-1"></i>KYC Pending
+                                                    </span>
+                                                {% endif %}
+                                                <span class="badge bg-primary">{{ customer.status.title() }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="btn-group" role="group">
+                                        <a href="/customers/{{ customer.id }}/edit" class="btn btn-outline-primary">
+                                            <i class="fas fa-edit me-2"></i>Edit
+                                        </a>
+                                        <a href="/loans/new/{{ customer.id }}" class="btn btn-primary">
+                                            <i class="fas fa-plus me-2"></i>New Loan
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Details -->
+            <div class="row mb-4">
+                <!-- Personal Information -->
+                <div class="col-md-6">
+                    <div class="dashboard-card h-100">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-user me-2"></i>Personal Information
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Full Name:</strong></div>
+                                <div class="col-sm-8">{{ customer.name }}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Phone:</strong></div>
+                                <div class="col-sm-8">
+                                    <i class="fas fa-phone text-primary me-2"></i>{{ customer.phone }}
+                                </div>
+                            </div>
+                            {% if customer.email %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Email:</strong></div>
+                                <div class="col-sm-8">
+                                    <i class="fas fa-envelope text-primary me-2"></i>{{ customer.email }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if customer.address %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Address:</strong></div>
+                                <div class="col-sm-8">{{ customer.address }}</div>
+                            </div>
+                            {% endif %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Joined:</strong></div>
+                                <div class="col-sm-8">{{ customer.created_at.strftime('%d %B, %Y') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KYC Information -->
+                <div class="col-md-6">
+                    <div class="dashboard-card h-100">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-id-card me-2"></i>KYC Information
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            {% if customer.id_proof_type %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>ID Type:</strong></div>
+                                <div class="col-sm-8">{{ customer.id_proof_type.title() }}</div>
+                            </div>
+                            {% endif %}
+                            {% if customer.id_proof_number %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>ID Number:</strong></div>
+                                <div class="col-sm-8">{{ customer.id_proof_number }}</div>
+                            </div>
+                            {% endif %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>KYC Status:</strong></div>
+                                <div class="col-sm-8">
+                                    {% if customer.kyc_verified %}
+                                        <span class="badge bg-success">Verified</span>
+                                        {% if customer.verification_date %}
+                                        <small class="text-muted d-block">Verified on {{ customer.verification_date.strftime('%d %B, %Y') }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending Verification</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if customer.notes %}
+                            <div class="row mb-3">
+                                <div class="col-sm-4"><strong>Notes:</strong></div>
+                                <div class="col-sm-8">{{ customer.notes }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loan Summary -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-chart-line me-2"></i>Loan Summary
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        <h4 class="text-primary mb-1">{{ loans|length }}</h4>
+                                        <small class="text-muted">Total Loans</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        {% set active_loans = loans|selectattr('status', 'equalto', 'active')|list %}
+                                        <h4 class="text-success mb-1">{{ active_loans|length }}</h4>
+                                        <small class="text-muted">Active Loans</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        {% set total_amount = loans|sum(attribute='loan_amount') %}
+                                        <h4 class="text-warning mb-1">₹{{ "{:,.0f}".format(total_amount) if total_amount else "0" }}</h4>
+                                        <small class="text-muted">Total Borrowed</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="text-center">
+                                        {% set outstanding = loans|selectattr('status', 'equalto', 'active')|sum(attribute='remaining_amount') %}
+                                        <h4 class="text-danger mb-1">₹{{ "{:,.0f}".format(outstanding) if outstanding else "0" }}</h4>
+                                        <small class="text-muted">Outstanding</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loans List -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3 class="card-title">
+                                    <i class="fas fa-file-invoice-dollar me-2"></i>Loan History
+                                </h3>
+                                <a href="/loans/new/{{ customer.id }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus me-2"></i>New Loan
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {% if loans %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Loan ID</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Interest Rate</th>
+                                            <th>Term</th>
+                                            <th>Status</th>
+                                            <th>Start Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for loan in loans %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ loan.loan_reference }}</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">{{ loan.loan_type.title() }}</span>
+                                            </td>
+                                            <td>₹{{ "{:,.2f}".format(loan.loan_amount) }}</td>
+                                            <td>{{ loan.interest_rate }}%</td>
+                                            <td>{{ loan.term_months }} months</td>
+                                            <td>
+                                                {% if loan.status == 'active' %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% elif loan.status == 'pending' %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% elif loan.status == 'overdue' %}
+                                                    <span class="badge bg-danger">Overdue</span>
+                                                {% elif loan.status == 'paid' %}
+                                                    <span class="badge bg-secondary">Paid</span>
+                                                {% else %}
+                                                    <span class="badge bg-dark">{{ loan.status.title() }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ loan.start_date.strftime('%d %b, %Y') }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="/loans/{{ loan.id }}" class="btn btn-sm btn-outline-primary" title="View Loan">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    {% if loan.status == 'active' %}
+                                                    <a href="/payments/new/{{ loan.id }}" class="btn btn-sm btn-outline-success" title="Record Payment">
+                                                        <i class="fas fa-money-bill-wave"></i>
+                                                    </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-file-invoice-dollar fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">No loans found for this customer</p>
+                                <a href="/loans/new/{{ customer.id }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Create First Loan
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/firebase-config.js') }}"></script>
+
+    <script>
+        // Include the same dashboard controller
+        class DashboardController {
+            constructor() {
+                this.initializeElements();
+                this.initializeEventListeners();
+                this.loadUserInfo();
+                this.initializeResponsive();
+                this.sidebarCollapsed = false;
+            }
+
+            initializeElements() {
+                this.elements = {
+                    sidebar: document.getElementById('sidebar'),
+                    sidebarToggle: document.getElementById('sidebarToggle'),
+                    sidebarOverlay: document.getElementById('sidebarOverlay'),
+                    mainContent: document.getElementById('mainContent'),
+                    userMenuToggle: document.getElementById('userMenuToggle'),
+                    userMenuDropdown: document.getElementById('userMenuDropdown'),
+                    logoutBtn: document.getElementById('logoutBtn'),
+                    userName: document.getElementById('userName'),
+                    userRole: document.getElementById('userRole'),
+                    userAvatar: document.getElementById('userAvatar'),
+                    headerUserName: document.getElementById('headerUserName'),
+                    headerUserAvatar: document.getElementById('headerUserAvatar')
+                };
+            }
+
+            initializeEventListeners() {
+                this.elements.sidebarToggle.addEventListener('click', () => {
+                    this.toggleSidebar();
+                });
+
+                this.elements.sidebarOverlay.addEventListener('click', () => {
+                    this.closeSidebar();
+                });
+
+                this.elements.userMenuToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleUserMenu();
+                });
+
+                document.addEventListener('click', () => {
+                    this.closeUserMenu();
+                });
+
+                this.elements.logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.handleLogout();
+                });
+            }
+
+            initializeResponsive() {
+                window.addEventListener('resize', () => {
+                    this.handleResize();
+                });
+                this.handleResize();
+            }
+
+            handleResize() {
+                const isMobile = window.innerWidth <= 992;
+                if (isMobile) {
+                    this.elements.sidebar.classList.remove('collapsed');
+                    this.elements.sidebar.classList.add('mobile-hidden');
+                    this.elements.mainContent.classList.add('mobile-expanded');
+                    this.elements.mainContent.classList.remove('sidebar-collapsed');
+                } else {
+                    this.elements.sidebar.classList.remove('mobile-hidden', 'show');
+                    this.elements.mainContent.classList.remove('mobile-expanded');
+                    this.elements.sidebarOverlay.classList.remove('show');
+                    if (this.sidebarCollapsed) {
+                        this.elements.sidebar.classList.add('collapsed');
+                        this.elements.mainContent.classList.add('sidebar-collapsed');
+                    }
+                }
+            }
+
+            toggleSidebar() {
+                const isMobile = window.innerWidth <= 992;
+                if (isMobile) {
+                    this.elements.sidebar.classList.toggle('show');
+                    this.elements.sidebarOverlay.classList.toggle('show');
+                } else {
+                    this.sidebarCollapsed = !this.sidebarCollapsed;
+                    this.elements.sidebar.classList.toggle('collapsed');
+                    this.elements.mainContent.classList.toggle('sidebar-collapsed');
+                }
+            }
+
+            closeSidebar() {
+                this.elements.sidebar.classList.remove('show');
+                this.elements.sidebarOverlay.classList.remove('show');
+            }
+
+            toggleUserMenu() {
+                this.elements.userMenuDropdown.classList.toggle('show');
+            }
+
+            closeUserMenu() {
+                this.elements.userMenuDropdown.classList.remove('show');
+            }
+
+            async loadUserInfo() {
+                try {
+                    const response = await fetch('/api/user/info');
+                    if (response.ok) {
+                        const userData = await response.json();
+                        if (userData.authenticated) {
+                            this.updateUserDisplay(userData);
+                            return;
+                        }
+                    }
+                    this.updateUserDisplay({
+                        username: 'User',
+                        email: 'user@example.com',
+                        role: 'user'
+                    });
+                } catch (error) {
+                    console.error('Error loading user info:', error);
+                    this.updateUserDisplay({
+                        username: 'User',
+                        email: 'user@example.com',
+                        role: 'user'
+                    });
+                }
+            }
+
+            updateUserDisplay(userData) {
+                const displayName = userData.username || userData.email || 'User';
+                const userRole = userData.role || 'user';
+                const initials = this.getInitials(displayName);
+
+                if (this.elements.userName) {
+                    this.elements.userName.textContent = displayName;
+                }
+                if (this.elements.userRole) {
+                    this.elements.userRole.textContent = userRole.charAt(0).toUpperCase() + userRole.slice(1);
+                }
+                if (this.elements.headerUserName) {
+                    this.elements.headerUserName.textContent = displayName;
+                }
+                if (this.elements.userAvatar) {
+                    this.elements.userAvatar.innerHTML = initials;
+                }
+                if (this.elements.headerUserAvatar) {
+                    this.elements.headerUserAvatar.innerHTML = initials;
+                }
+            }
+
+            getInitials(name) {
+                return name.split(' ')
+                    .map(word => word.charAt(0))
+                    .join('')
+                    .toUpperCase()
+                    .substring(0, 2);
+            }
+
+            async handleLogout() {
+                try {
+                    this.elements.logoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Logging out...</span>';
+                    this.elements.logoutBtn.style.pointerEvents = 'none';
+
+                    if (window.FirebaseAuth && window.isFirebaseReady && window.isFirebaseReady()) {
+                        try {
+                            await window.FirebaseAuth.signOut();
+                        } catch (firebaseError) {
+                            console.warn('Firebase logout failed:', firebaseError);
+                        }
+                    }
+
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    window.location.href = '/login';
+                } catch (error) {
+                    console.error('Logout error:', error);
+                    window.location.href = '/login';
+                }
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            window.dashboardController = new DashboardController();
+        });
+    </script>
 </body>
 </html>
