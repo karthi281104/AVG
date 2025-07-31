@@ -1,3 +1,4 @@
+// Main JavaScript file for AVG Loan Management System
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize AOS for animations
     if (typeof AOS !== 'undefined') {
@@ -8,6 +9,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Initialize navbar scroll effect
+    initializeNavbarScroll();
+    
+    // Initialize smooth scrolling
+    initializeSmoothScrolling();
     // Update year in footer
     const yearEl = document.getElementById('current-year');
     if (yearEl) {
@@ -285,6 +291,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Navbar scroll effect
+function initializeNavbarScroll() {
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    }
+}
+
+// Smooth scrolling for anchor links
+function initializeSmoothScrolling() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href !== '#' && href !== '#!') {
+                const target = document.querySelector(href);
+                if (target) {
+                    e.preventDefault();
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }
+        });
+    });
+}
+
+// Global utility functions
+window.AVGUtils = {
+    
 // Utility function to format currency
 function formatCurrency(amount, symbol = '₹') {
     return `${symbol} ${parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
@@ -293,4 +335,26 @@ function formatCurrency(amount, symbol = '₹') {
 // Utility function to confirm actions
 function confirmAction(message = 'Are you sure you want to perform this action?') {
     return confirm(message);
+    },
+    
+    // Format numbers with Indian numbering system
+    formatIndianNumber: function(num) {
+        return new Intl.NumberFormat('en-IN').format(num);
+    },
+    
+    // Validate email
+    validateEmail: function(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    },
+    
+    // Validate phone number (Indian)
+    validatePhone: function(phone) {
+        const re = /^[6-9]\d{9}$/;
+        return re.test(phone.replace(/\D/g, ''));
+    }
+};
+
+// Make utilities globally available
+window.formatCurrency = window.AVGUtils.formatCurrency;
 }

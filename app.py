@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, g, current_app
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -212,6 +212,15 @@ def create_app(config_name='default'):
 
         return render_template('login.html', firebase_enabled=FIREBASE_ENABLED)
 
+    @app.route('/register', methods=['GET', 'POST'])
+    def register():
+        if request.method == 'POST':
+            # Handle registration logic here
+            flash('Registration functionality will be implemented', 'info')
+            return redirect(url_for('login'))
+        return render_template('register.html', firebase_enabled=FIREBASE_ENABLED)
+
+    # Firebase Auth API endpoint
     # Firebase Auth API endpoint
     # Replace your existing /api/auth/verify route with this enhanced version
     @app.route('/api/auth/verify', methods=['POST'])
@@ -432,6 +441,26 @@ def create_app(config_name='default'):
 
         return jsonify({'converted_value': result})
 
+    # View loan details
+    @app.route('/loans/<int:loan_id>')
+    @login_required
+    def view_loan(loan_id):
+        """View loan details"""
+        loan = Loan.query.get_or_404(loan_id)
+        payments = Payment.query.filter_by(loan_id=loan.id).order_by(Payment.payment_date.desc()).all()
+        documents = Document.query.filter_by(loan_id=loan.id).all()
+        
+        # Calculate remaining EMIs
+        total_paid = sum(payment.amount for payment in payments)
+        remaining_amount = loan.loan_amount - total_paid
+        
+        return render_template('loans/view.html', 
+                             loan=loan, 
+                             payments=payments, 
+                             documents=documents,
+                             total_paid=total_paid,
+                             remaining_amount=remaining_amount)
+
     # Customer Management Routes
     @app.route('/customers')
     @login_required
@@ -445,6 +474,13 @@ def create_app(config_name='default'):
         )
 
         return render_template('customers/list.html', customers=customers)
+
+    @app.route('/customers/<int:customer_id>/edit', methods=['GET', 'POST'])
+    @login_required
+    def edit_customer(customer_id):
+        """Edit customer details"""
+        customer = Customer.query.get_or_404(customer_id)
+        return render_template('customers/edit.html', customer=customer)
 
     @app.route('/customers/new', methods=['GET', 'POST'])
     @login_required
@@ -600,6 +636,20 @@ def create_app(config_name='default'):
 
         return render_template('loans/new.html', customer=customer)
 
+    # Payment Management Routes
+    @app.route('/payments')
+    @login_required
+    def list_payments():
+        """List all payments"""
+        page = request.args.get('page', 1, type=int)
+        per_page = 20
+        
+        payments = Payment.query.join(Loan).join(Customer).order_by(Payment.payment_date.desc()).paginate(
+            page=page, per_page=per_page, error_out=False
+        )
+        
+        return render_template('payments/list.html', payments=payments)
+
     # Document Management Routes
     @app.route('/documents/upload/<int:loan_id>', methods=['POST'])
     @login_required
@@ -630,6 +680,13 @@ def create_app(config_name='default'):
         document = Document.query.get_or_404(document_id)
         return render_template('documents/view.html', document=document)
 
+    # Reports Routes
+    @app.route('/reports')
+    @login_required
+    def reports():
+        """Reports dashboard"""
+        return render_template('reports/index.html')
+
     @app.route('/api/auth/logout', methods=['POST'])
     def api_logout():
         """Clear server-side session when user logs out"""
@@ -640,6 +697,12 @@ def create_app(config_name='default'):
     def logout():
         session.clear()
         return redirect(url_for('home'))
+
+    @app.route('/settings')
+    @login_required
+    def settings():
+        """Settings page"""
+        return render_template('settings.html')
 
     # Add the dashboard route
     @app.route('/dashboard')
